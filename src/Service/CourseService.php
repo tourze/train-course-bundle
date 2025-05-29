@@ -57,12 +57,12 @@ class CourseService
 
                 try {
                     $playInfo = $this->videoManageService->getPlayInfo($vid);
-                    
+
                     // 获取第一个播放地址（通常是最高质量的）
                     if (!empty($playInfo['playInfoList'])) {
                         return $playInfo['playInfoList'][0]['playURL'];
                     }
-                    
+
                     $this->logger->warning('未找到视频播放信息', ['vid' => $vid]);
                     return $vid;
                 } catch (\Exception $exception) {
@@ -127,13 +127,13 @@ class CourseService
     public function isSupportedVideoProtocol(string $videoUrl): bool
     {
         $supportedProtocols = $this->configService->getSupportedVideoProtocols();
-        
+
         foreach ($supportedProtocols as $protocol) {
             if (str_starts_with($videoUrl, $protocol)) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -154,8 +154,4 @@ class CourseService
             'watched_duration' => 0,
         ];
     }
-
-
-
-
 }

@@ -12,7 +12,7 @@ use Tourze\TrainCourseBundle\TrainCourseBundle;
 
 /**
  * 集成测试专用内核
- * 
+ *
  * 用于集成测试的轻量级内核，只加载必要的Bundle和配置
  */
 class IntegrationTestKernel extends Kernel
@@ -43,6 +43,29 @@ class IntegrationTestKernel extends Kernel
                 'default_uuid_version' => 7,
                 'time_based_uuid_version' => 7,
             ],
+        ]);
+
+        // 配置Security Bundle
+        $container->loadFromExtension('security', [
+            'providers' => [
+                'test_provider' => [
+                    'memory' => [
+                        'users' => [
+                            'test_user' => [
+                                'password' => 'test_password',
+                                'roles' => ['ROLE_USER'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'firewalls' => [
+                'main' => [
+                    'provider' => 'test_provider',
+                    'stateless' => true,
+                ],
+            ],
+            'access_control' => [],
         ]);
 
         $container->loadFromExtension('doctrine', [
@@ -122,4 +145,4 @@ class IntegrationTestKernel extends Kernel
     {
         return __DIR__ . '/../..';
     }
-} 
+}

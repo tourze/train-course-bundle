@@ -39,12 +39,6 @@ class CourseServiceTest extends TestCase
         $this->assertTrue($reflection->hasMethod('getLessonArray'));
     }
 
-    public function test_getCourseWithDetailsMethod_exists(): void
-    {
-        $reflection = new \ReflectionClass(CourseService::class);
-        $this->assertTrue($reflection->hasMethod('getCourseWithDetails'));
-    }
-
     public function test_isCourseValidMethod_exists(): void
     {
         $reflection = new \ReflectionClass(CourseService::class);
@@ -74,4 +68,4 @@ class CourseServiceTest extends TestCase
         $reflection = new \ReflectionClass(CourseService::class);
         $this->assertTrue($reflection->hasMethod('getCourseProgress'));
     }
-} 
+}

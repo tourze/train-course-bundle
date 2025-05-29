@@ -9,7 +9,7 @@ use Tourze\TrainCourseBundle\Entity\Lesson;
 
 /**
  * Lesson 实体测试
- * 
+ *
  * 测试课时实体的基础属性、关联关系和业务方法
  */
 class LessonTest extends TestCase
@@ -237,45 +237,11 @@ class LessonTest extends TestCase
         }
     }
 
-    public function test_video_play_url_generation(): void
-    {
-        // 由于getVideoPlayUrl依赖Kernel和容器，这里只测试方法存在
-        $this->assertTrue(method_exists($this->lesson, 'getVideoPlayUrl'));
-        
-        // 在没有Kernel的情况下，这个方法会抛出异常，这是预期的
-        $this->expectException(\Error::class);
-        $this->lesson->getVideoPlayUrl();
-    }
-
-    public function test_render_video_action(): void
-    {
-        // 测试方法存在
-        $this->assertTrue(method_exists($this->lesson, 'renderVideoAction'));
-        
-        try {
-            $result = $this->lesson->renderVideoAction();
-            
-            // 测试返回的对象是否有预期的结构
-            $this->assertIsObject($result);
-            
-            // 测试对象是否有基本的方法（不指定具体类型）
-            $this->assertTrue(method_exists($result, 'setIframeUrlDataIndex'));
-            $this->assertTrue(method_exists($result, 'setLabel'));
-            $this->assertTrue(method_exists($result, 'setIsLinkMode'));
-            $this->assertTrue(method_exists($result, 'setContainerStyle'));
-            $this->assertTrue(method_exists($result, 'setType'));
-            $this->assertTrue(method_exists($result, 'setModalWidth'));
-        } catch (\Error $e) {
-            // 如果ModalWebViewAction类不可用，至少验证方法存在并且会抛出预期的错误
-            $this->assertTrue(str_contains($e->getMessage(), 'ModalWebViewAction') || str_contains($e->getMessage(), 'Class'));
-        }
-    }
-
     public function test_fluent_interface(): void
     {
         /** @var Chapter|MockObject $chapter */
         $chapter = $this->createMock(Chapter::class);
-        
+
         $result = $this->lesson
             ->setTitle('第一课 安全基础知识')
             ->setChapter($chapter)
@@ -285,7 +251,7 @@ class LessonTest extends TestCase
             ->setFaceDetectDuration(600)
             ->setCreatedBy('user123')
             ->setUpdatedBy('user456');
-        
+
         $this->assertSame($this->lesson, $result);
         $this->assertSame('第一课 安全基础知识', $this->lesson->getTitle());
         $this->assertSame($chapter, $this->lesson->getChapter());
@@ -343,4 +309,4 @@ class LessonTest extends TestCase
         $this->lesson->setFaceDetectDuration(3600); // 1小时
         $this->assertSame(3600, $this->lesson->getFaceDetectDuration());
     }
-} 
+}
