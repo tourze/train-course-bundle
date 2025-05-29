@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainCourseBundle\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -16,7 +15,6 @@ use Tourze\TrainCourseBundle\Repository\CourseRepository;
 use Tourze\TrainCourseBundle\Repository\CourseVersionRepository;
 use Tourze\TrainCourseBundle\Repository\EvaluateRepository;
 use Tourze\TrainCourseBundle\Service\CourseAnalyticsService;
-use Tourze\TrainCourseBundle\Service\CourseConfigService;
 
 /**
  * 课程统计命令
@@ -30,14 +28,12 @@ use Tourze\TrainCourseBundle\Service\CourseConfigService;
 class CourseStatisticsCommand extends Command
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private CourseRepository $courseRepository,
-        private CollectRepository $collectRepository,
-        private EvaluateRepository $evaluateRepository,
-        private CourseAuditRepository $auditRepository,
-        private CourseVersionRepository $versionRepository,
-        private CourseAnalyticsService $analyticsService,
-        private CourseConfigService $configService
+        private readonly CourseRepository $courseRepository,
+        private readonly CollectRepository $collectRepository,
+        private readonly EvaluateRepository $evaluateRepository,
+        private readonly CourseAuditRepository $auditRepository,
+        private readonly CourseVersionRepository $versionRepository,
+        private readonly CourseAnalyticsService $analyticsService,
     ) {
         parent::__construct();
     }
@@ -428,4 +424,4 @@ class CourseStatisticsCommand extends Command
             }
         }
     }
-} 
+}

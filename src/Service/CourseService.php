@@ -25,8 +25,6 @@ class CourseService
     ) {
     }
 
-
-
     /**
      * 获取所有下级目录
      *
@@ -89,20 +87,6 @@ class CourseService
     public function getLessonArray(Lesson $lesson): array
     {
         return $lesson->retrieveApiArray();
-    }
-
-    /**
-     * 获取课程详细信息（包含章节和课时）
-     */
-    public function getCourseWithDetails(string $courseId): ?Course
-    {
-        return $this->cache->get("course_details_{$courseId}", function (ItemInterface $item) use ($courseId) {
-            $item->expiresAt(Carbon::now()->addMinutes($this->configService->getCourseInfoCacheTime()));
-
-            // 这里需要注入 CourseRepository
-            // 暂时返回 null，后续完善
-            return null;
-        });
     }
 
     /**
