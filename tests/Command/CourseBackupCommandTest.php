@@ -10,11 +10,6 @@ use Tourze\TrainCourseBundle\Command\CourseBackupCommand;
  */
 class CourseBackupCommandTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        // Command 测试主要验证方法存在性
-    }
-
     public function test_commandExists(): void
     {
         $reflection = new \ReflectionClass(CourseBackupCommand::class);
@@ -42,12 +37,12 @@ class CourseBackupCommandTest extends TestCase
     public function test_methodVisibility(): void
     {
         $reflection = new \ReflectionClass(CourseBackupCommand::class);
-        
+
         // 验证方法可见性
         $configureMethod = $reflection->getMethod('configure');
         $this->assertTrue($configureMethod->isProtected());
-        
+
         $executeMethod = $reflection->getMethod('execute');
         $this->assertTrue($executeMethod->isProtected());
     }
-} 
+}
