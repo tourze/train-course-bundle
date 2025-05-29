@@ -12,6 +12,10 @@ class TrainCourseBundle extends Bundle implements BundleDependencyInterface
         return [
             \WeuiBundle\WeuiBundle::class => ['all' => true],
             \Tourze\AliyunVodBundle\AliyunVodBundle::class => ['all' => true],
+            \Tourze\DoctrineSnowflakeBundle\DoctrineSnowflakeBundle::class => ['all' => true],
+            \Tourze\DoctrineUserBundle\DoctrineUserBundle::class => ['all' => true],
+            \Tourze\DoctrineIndexedBundle\DoctrineIndexedBundle::class => ['all' => true],
+            \Tourze\DoctrineTrackBundle\DoctrineTrackBundle::class => ['all' => true],
         ];
     }
 }
