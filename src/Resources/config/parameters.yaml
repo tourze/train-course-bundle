@@ -1,0 +1,40 @@
+parameters:
+  # 视频相关配置
+  train_course.video.play_url_cache_time: 30  # 视频播放地址缓存时间（分钟）
+  train_course.video.supported_protocols:
+    - 'ali://'
+    - 'polyv://'
+    - 'http://'
+    - 'https://'
+
+  # 课程相关配置
+  train_course.course.info_cache_time: 60  # 课程信息缓存时间（分钟）
+  train_course.course.default_valid_days: 365  # 默认课程有效期（天）
+  train_course.course.default_learn_hours: 8  # 默认学时
+  train_course.course.default_cover: '/images/default-course-cover.jpg'  # 默认封面
+  train_course.course.cover_max_size: 2048000  # 封面最大大小（字节）
+  train_course.course.cover_allowed_types:
+    - 'image/jpeg'
+    - 'image/png'
+    - 'image/webp'
+
+  # Polyv 视频代理配置
+  train_course.polyv.proxy_url: 'http://127.0.0.1:9001/'
+  train_course.polyv.prefix: 'polyv://dp-video/'
+
+  # 播放控制配置
+  train_course.play_control.allow_fast_forward: false  # 是否允许快进
+  train_course.play_control.allow_speed_control: false  # 是否允许倍速播放
+  train_course.play_control.max_device_count: 3  # 最大设备数量
+  train_course.play_control.enable_watermark: true  # 是否启用水印
+  train_course.play_control.play_auth_duration: 3600  # 播放凭证有效期（秒）
+
+  # 审核配置
+  train_course.audit.auto_audit: false  # 是否自动审核
+  train_course.audit.timeout: 86400  # 审核超时时间（秒）
+  train_course.audit.require_manual_review: true  # 是否需要人工审核
+
+  # 功能开关
+  train_course.features.advanced_analytics: false  # 高级分析功能
+  train_course.features.ai_content_audit: false  # AI内容审核
+  train_course.features.live_streaming: false  # 直播功能 
