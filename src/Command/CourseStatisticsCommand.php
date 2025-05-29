@@ -18,7 +18,7 @@ use Tourze\TrainCourseBundle\Service\CourseAnalyticsService;
 
 /**
  * 课程统计命令
- * 
+ *
  * 生成课程相关的统计报告，包括课程数量、评价统计、收藏统计等
  */
 #[AsCommand(
@@ -76,7 +76,7 @@ class CourseStatisticsCommand extends Command
         $outputFile = $input->getOption('output');
         $detailed = $input->getOption('detailed');
         $courseId = $input->getOption('course-id');
-        $topCount = (int) $input->getOption('top');
+        $topCount = (int)$input->getOption('top');
 
         if ($courseId) {
             return $this->showCourseStatistics($io, $courseId, $format, $outputFile);
@@ -155,7 +155,7 @@ class CourseStatisticsCommand extends Command
     private function getCourseStatistics(): array
     {
         $courseStats = $this->courseRepository->getStatistics();
-        
+
         return [
             'by_status' => $courseStats,
             'with_chapters' => count($this->courseRepository->findCoursesWithChapters()),
@@ -206,7 +206,7 @@ class CourseStatisticsCommand extends Command
             'limit' => $limit,
         ]);
 
-        return array_map(function($ranking) {
+        return array_map(function ($ranking) {
             return [
                 'id' => $ranking['course']->getId(),
                 'title' => $ranking['course']->getTitle(),
@@ -240,7 +240,7 @@ class CourseStatisticsCommand extends Command
         for ($i = $months - 1; $i >= 0; $i--) {
             $date = new \DateTime(sprintf('-%d months', $i));
             $monthKey = $date->format('Y-m');
-            
+
             $trends[$monthKey] = [
                 'new_courses' => $this->courseRepository->countByMonth($date),
                 'new_collects' => $this->collectRepository->countByMonth($date),
@@ -301,9 +301,9 @@ class CourseStatisticsCommand extends Command
     {
         // 基础统计表格
         $io->section('基础统计');
-        $basicTable = new Table($output ?? $io);
+        $basicTable = new Table($io);
         $basicTable->setHeaders(['指标', '数值']);
-        
+
         foreach ($statistics['basic'] as $key => $value) {
             $basicTable->addRow([ucfirst(str_replace('_', ' ', $key)), $value]);
         }
@@ -311,9 +311,9 @@ class CourseStatisticsCommand extends Command
 
         // 课程统计表格
         $io->section('课程统计');
-        $courseTable = new Table($output ?? $io);
+        $courseTable = new Table($io);
         $courseTable->setHeaders(['类型', '数量']);
-        
+
         foreach ($statistics['courses']['by_status'] as $status => $count) {
             $courseTable->addRow([ucfirst($status), $count]);
         }
@@ -321,9 +321,9 @@ class CourseStatisticsCommand extends Command
 
         if ($detailed && isset($statistics['detailed']['top_courses'])) {
             $io->section('热门课程排行榜');
-            $topTable = new Table($output ?? $io);
+            $topTable = new Table($io);
             $topTable->setHeaders(['排名', '课程标题', '受欢迎度', '质量分数', '收藏数', '评价数', '平均评分']);
-            
+
             foreach ($statistics['detailed']['top_courses'] as $index => $course) {
                 $topTable->addRow([
                     $index + 1,
@@ -360,7 +360,7 @@ class CourseStatisticsCommand extends Command
     private function outputCsv(SymfonyStyle $io, array $data, ?string $outputFile): void
     {
         $csv = [];
-        
+
         // 基础统计
         $csv[] = ['类型', '指标', '数值'];
         foreach ($data['basic'] as $key => $value) {
@@ -395,9 +395,9 @@ class CourseStatisticsCommand extends Command
 
         // 基础信息
         $io->section('基础信息');
-        $basicTable = new Table($output ?? $io);
+        $basicTable = new Table($io);
         $basicTable->setHeaders(['属性', '值']);
-        
+
         foreach ($report['course_info'] as $key => $value) {
             $basicTable->addRow([ucfirst(str_replace('_', ' ', $key)), $value]);
         }
@@ -405,9 +405,9 @@ class CourseStatisticsCommand extends Command
 
         // 受欢迎程度指标
         $io->section('受欢迎程度指标');
-        $popularityTable = new Table($output ?? $io);
+        $popularityTable = new Table($io);
         $popularityTable->setHeaders(['指标', '值']);
-        
+
         foreach ($report['popularity_metrics'] as $key => $value) {
             if (is_array($value)) {
                 $value = json_encode($value);
