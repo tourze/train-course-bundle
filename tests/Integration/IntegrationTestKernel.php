@@ -2,8 +2,6 @@
 
 namespace Tourze\TrainCourseBundle\Tests\Integration;
 
-use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
-use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -23,9 +21,6 @@ class IntegrationTestKernel extends Kernel
 
     public function registerBundles(): iterable
     {
-        yield new FrameworkBundle();
-        yield new DoctrineBundle();
-
         foreach (ResolveHelper::resolveBundleDependencies([TrainCourseBundle::class => ['all' => true]]) as $bundleClass => $bundleConfig) {
             yield new $bundleClass();
         }

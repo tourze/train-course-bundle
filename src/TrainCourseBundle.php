@@ -10,6 +10,8 @@ class TrainCourseBundle extends Bundle implements BundleDependencyInterface
     public static function getBundleDependencies(): array
     {
         return [
+            \Symfony\Bundle\FrameworkBundle\FrameworkBundle::class => ['all' => true],
+            \Doctrine\Bundle\DoctrineBundle\DoctrineBundle::class => ['all' => true],
             \WeuiBundle\WeuiBundle::class => ['all' => true],
             \Tourze\AliyunVodBundle\AliyunVodBundle::class => ['all' => true],
             \Tourze\DoctrineSnowflakeBundle\DoctrineSnowflakeBundle::class => ['all' => true],
