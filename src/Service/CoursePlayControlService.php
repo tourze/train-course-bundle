@@ -16,10 +16,10 @@ use Tourze\TrainCourseBundle\Repository\CoursePlayControlRepository;
 class CoursePlayControlService
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private CoursePlayControlRepository $playControlRepository,
-        private CacheItemPoolInterface $cache,
-        private CourseConfigService $configService
+        private readonly EntityManagerInterface $entityManager,
+        private readonly CoursePlayControlRepository $playControlRepository,
+        private readonly CacheItemPoolInterface $cache,
+        private readonly CourseConfigService $configService
     ) {
     }
 

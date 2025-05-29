@@ -27,12 +27,12 @@ use Tourze\TrainCourseBundle\Service\CourseConfigService;
 class CourseCleanupCommand extends Command
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private CacheItemPoolInterface $cache,
-        private CourseRepository $courseRepository,
-        private CourseVersionRepository $versionRepository,
-        private CourseAuditRepository $auditRepository,
-        private CourseConfigService $configService
+        private readonly EntityManagerInterface $entityManager,
+        private readonly CacheItemPoolInterface $cache,
+        private readonly CourseRepository $courseRepository,
+        private readonly CourseVersionRepository $versionRepository,
+        private readonly CourseAuditRepository $auditRepository,
+        private readonly CourseConfigService $configService
     ) {
         parent::__construct();
     }

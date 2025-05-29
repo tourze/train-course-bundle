@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainCourseBundle\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Repository\CollectRepository;
@@ -19,14 +18,12 @@ use Tourze\TrainCourseBundle\Repository\EvaluateRepository;
 class CourseAnalyticsService
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private CourseRepository $courseRepository,
-        private CollectRepository $collectRepository,
-        private EvaluateRepository $evaluateRepository,
-        private CourseAuditRepository $auditRepository,
-        private CourseVersionRepository $versionRepository,
-        private CacheItemPoolInterface $cache,
-        private CourseConfigService $configService
+        private readonly CourseRepository $courseRepository,
+        private readonly CollectRepository $collectRepository,
+        private readonly EvaluateRepository $evaluateRepository,
+        private readonly CourseAuditRepository $auditRepository,
+        private readonly CourseVersionRepository $versionRepository,
+        private readonly CacheItemPoolInterface $cache,
     ) {
     }
 

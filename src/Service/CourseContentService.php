@@ -10,7 +10,6 @@ use Tourze\TrainCourseBundle\Entity\CourseOutline;
 use Tourze\TrainCourseBundle\Entity\Lesson;
 use Tourze\TrainCourseBundle\Repository\ChapterRepository;
 use Tourze\TrainCourseBundle\Repository\CourseOutlineRepository;
-use Tourze\TrainCourseBundle\Repository\CourseRepository;
 use Tourze\TrainCourseBundle\Repository\LessonRepository;
 
 /**
@@ -21,13 +20,11 @@ use Tourze\TrainCourseBundle\Repository\LessonRepository;
 class CourseContentService
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private CourseRepository $courseRepository,
-        private ChapterRepository $chapterRepository,
-        private LessonRepository $lessonRepository,
-        private CourseOutlineRepository $outlineRepository,
-        private CacheItemPoolInterface $cache,
-        private CourseConfigService $configService
+        private readonly EntityManagerInterface $entityManager,
+        private readonly ChapterRepository $chapterRepository,
+        private readonly LessonRepository $lessonRepository,
+        private readonly CourseOutlineRepository $outlineRepository,
+        private readonly CacheItemPoolInterface $cache,
     ) {
     }
 
