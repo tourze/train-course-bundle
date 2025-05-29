@@ -5,7 +5,6 @@ namespace Tourze\TrainCourseBundle\Entity;
 use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
@@ -16,7 +15,6 @@ use Tourze\EasyAdmin\Attribute\Action\Copyable;
 use Tourze\EasyAdmin\Attribute\Action\Creatable;
 use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Action\ListAction;
 use Tourze\EasyAdmin\Attribute\Column\CopyColumn;
 use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
 use Tourze\EasyAdmin\Attribute\Column\ListColumn;
@@ -223,10 +221,6 @@ class Lesson implements \Stringable, ApiArrayInterface, AdminArrayInterface
         ];
     }
 
-
-
-
-
     /**
      * 学时计算，学时是按照45分钟一节来计算的
      */
@@ -248,31 +242,6 @@ class Lesson implements \Stringable, ApiArrayInterface, AdminArrayInterface
             'durationSecond' => $this->getDurationSecond(),
             'faceDetectDuration' => $this->getFaceDetectDuration(),
             'videoUrl' => $this->getVideoUrl(),
-            'videoPlayUrl' => $this->getVideoPlayUrl(),
         ];
     }
-
-    public function getVideoPlayUrl(): string
-    {
-        return Kernel::getInstance()
-            ->getContainer()
-            ->get(UrlGeneratorInterface::class)
-            ->generate('job-training-player-video', ['lessonId' => $this->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
-    }
-
-    #[ListAction(title: '视频播放')]
-    public function renderVideoAction()
-    {
-        return ModalWebViewAction::gen()
-            ->setIframeUrlDataIndex('videoPlayUrl')
-            ->setLabel('视频播放')
-            ->setIsLinkMode(true)
-            ->setContainerStyle((object) [
-                'height' => 700,
-            ])
-            ->setType('modal-web-view-action')
-            ->setModalWidth(900);
-    }
-
-
 }
