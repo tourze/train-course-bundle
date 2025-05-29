@@ -2,9 +2,6 @@
 
 namespace Tourze\TrainCourseBundle\Entity;
 
-use AntdCpBundle\Builder\Action\ModalWebViewAction;
-use AntdCpBundle\Builder\Field\LongTextField;
-use App\Kernel;
 use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -97,23 +94,10 @@ class Lesson implements \Stringable, ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(options: ['comment' => '人脸识别间隔(秒)'])]
     private int $faceDetectDuration = 900;
 
-    /**
-     * @LongTextField()
-     */
     #[CopyColumn]
     #[FormField]
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '视频地址'])]
     private ?string $videoUrl = null;
-
-
-
-
-
-
-
-    public function __construct()
-    {
-    }
 
     public function __toString(): string
     {
