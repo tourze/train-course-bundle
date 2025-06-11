@@ -139,7 +139,7 @@ class CourseCleanupCommand extends Command
                 try {
                     $this->cache->clear();
                     $clearedCount++;
-                } catch  (\Throwable $e) {
+                } catch (\Throwable $e) {
                     $io->warning(sprintf('清理缓存失败: %s', $e->getMessage()));
                 }
             } else {
