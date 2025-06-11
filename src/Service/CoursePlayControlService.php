@@ -202,7 +202,7 @@ class CoursePlayControlService
             }
 
             return $authData;
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             throw new \InvalidArgumentException('Invalid play auth token: ' . $e->getMessage());
         }
     }

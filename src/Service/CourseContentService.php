@@ -216,12 +216,12 @@ class CourseContentService
                                 try {
                                     $lesson = $this->createLesson($chapter, $lessonData);
                                     $results['lessons'][] = $lesson->getId();
-                                } catch (\Exception $e) {
+                                } catch  (\Throwable $e) {
                                     $results['errors'][] = "课时导入失败: " . $e->getMessage();
                                 }
                             }
                         }
-                    } catch (\Exception $e) {
+                    } catch  (\Throwable $e) {
                         $results['errors'][] = "章节导入失败: " . $e->getMessage();
                     }
                 }
@@ -233,7 +233,7 @@ class CourseContentService
                     try {
                         $outline = $this->createOutline($course, $outlineData);
                         $results['outlines'][] = $outline->getId();
-                    } catch (\Exception $e) {
+                    } catch  (\Throwable $e) {
                         $results['errors'][] = "大纲导入失败: " . $e->getMessage();
                     }
                 }
@@ -242,7 +242,7 @@ class CourseContentService
             $this->entityManager->commit();
             $this->clearCourseContentCache($course);
 
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             $this->entityManager->rollback();
             $results['errors'][] = "批量导入失败: " . $e->getMessage();
         }
@@ -272,7 +272,7 @@ class CourseContentService
             $this->clearCourseContentCache($course);
             return true;
 
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             $this->entityManager->rollback();
             return false;
         }
@@ -300,7 +300,7 @@ class CourseContentService
             $this->clearCourseContentCache($chapter->getCourse());
             return true;
 
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             $this->entityManager->rollback();
             return false;
         }

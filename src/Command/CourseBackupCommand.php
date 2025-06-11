@@ -140,7 +140,7 @@ class CourseBackupCommand extends Command
 
             return Command::SUCCESS;
 
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             $io->error("备份失败: {$e->getMessage()}");
             return Command::FAILURE;
         }
