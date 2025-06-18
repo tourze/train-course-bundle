@@ -80,7 +80,7 @@ class CourseRepository extends ServiceEntityRepository
             ->setParameter('valid', true)
             ->setParameter('keyword', '%' . $keyword . '%');
 
-        if ($category) {
+        if ((bool) $category) {
             $qb->andWhere('c.category = :category')
                ->setParameter('category', $category);
         }

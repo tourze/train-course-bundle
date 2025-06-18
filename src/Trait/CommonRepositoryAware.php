@@ -16,7 +16,7 @@ trait CommonRepositoryAware
     {
         $this->getEntityManager()->persist($entity);
         
-        if ($flush) {
+        if ((bool) $flush) {
             $this->getEntityManager()->flush();
         }
     }
@@ -28,7 +28,7 @@ trait CommonRepositoryAware
     {
         $this->getEntityManager()->remove($entity);
         
-        if ($flush) {
+        if ((bool) $flush) {
             $this->getEntityManager()->flush();
         }
     }
@@ -42,7 +42,7 @@ trait CommonRepositoryAware
             $this->getEntityManager()->persist($entity);
         }
         
-        if ($flush) {
+        if ((bool) $flush) {
             $this->getEntityManager()->flush();
         }
     }

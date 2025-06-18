@@ -4,17 +4,12 @@ namespace Tourze\TrainCourseBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\AliyunVodBundle\Entity\AliyunVodConfig;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainCourseBundle\Repository\VideoRepository;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
@@ -24,18 +19,12 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
  * 存储课程相关的视频信息，关联阿里云VOD服务
  * 通过 aliyun-vod-bundle 管理视频的上传、转码、播放等功能
  */
-#[AsPermission(title: '课程视频')]
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: VideoRepository::class)]
 #[ORM\Table(name: 'train_course_video', options: ['comment' => '课程视频'])]
-class Video
+class Video implements Stringable
 {
     use TimestampableTrait;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -53,12 +42,8 @@ class Video
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[ListColumn]
-    #[ORM\Column(length: 120, options: ['comment' => '视频名称'])]
     private ?string $title = null;
 
-    #[ListColumn]
-    #[ORM\Column(length: 64, options: ['comment' => '阿里云视频ID'])]
     private ?string $videoId = null;
 
     #[ORM\Column(type: Types::BIGINT, nullable: true, options: ['comment' => '视频文件大小（字节）'])]
@@ -188,5 +173,10 @@ class Video
         $this->vodConfig = $vodConfig;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->id;
     }
 }

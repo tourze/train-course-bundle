@@ -4,16 +4,11 @@ namespace Tourze\TrainCourseBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainCourseBundle\Repository\CourseAuditRepository;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
@@ -23,18 +18,12 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
  * 管理课程的审核流程，包括审核状态、审核意见、审核人员等信息
  * 支持多级审核和审核历史记录
  */
-#[AsPermission(title: '课程审核')]
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: CourseAuditRepository::class)]
 #[ORM\Table(name: 'train_course_audit', options: ['comment' => '课程审核'])]
-class CourseAudit
+class CourseAudit implements Stringable
 {
     use TimestampableTrait;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -52,17 +41,12 @@ class CourseAudit
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[ListColumn]
     #[ORM\ManyToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', options: ['comment' => '关联课程'])]
     private ?Course $course = null;
 
-    #[ListColumn]
-    #[ORM\Column(length: 50, nullable: false, options: ['comment' => '审核状态', 'default' => 'pending'])]
     private string $status = 'pending';
 
-    #[ListColumn]
-    #[ORM\Column(length: 50, nullable: false, options: ['comment' => '审核类型', 'default' => 'content'])]
     private string $auditType = 'content';
 
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '审核人员'])]
@@ -71,17 +55,15 @@ class CourseAudit
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '审核意见'])]
     private ?string $auditComment = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '审核时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '审核时间'])]
     private ?\DateTimeInterface $auditTime = null;
 
-    #[ListColumn]
-    #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '审核级别', 'default' => 1])]
     private int $auditLevel = 1;
 
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '优先级', 'default' => 0])]
     private int $priority = 0;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '截止时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '截止时间'])]
     private ?\DateTimeInterface $deadline = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '审核数据'])]
@@ -300,5 +282,10 @@ class CourseAudit
             'final' => '终审',
             default => '其他审核',
         };
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->id;
     }
 } 

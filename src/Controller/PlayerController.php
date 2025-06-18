@@ -26,9 +26,9 @@ class PlayerController extends AbstractController
         $lesson = $this->lessonRepository->findOneBy([
             'id' => $request->query->get('lessonId'),
         ]);
-        if ($lesson) {
+        if ((bool) $lesson) {
             $url = $this->courseService->getLessonPlayUrl($lesson);
-            if (empty($url)) {
+            if ((bool) empty($url)) {
                 return $this->noticeService->weuiError('找不到视频播放地址');
             }
 

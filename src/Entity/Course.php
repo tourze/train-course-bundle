@@ -11,40 +11,26 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
-use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 use Tourze\EasyAdmin\Attribute\Action\Copyable;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
 use Tourze\EasyAdmin\Attribute\Action\CurdAction;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
 use Tourze\EasyAdmin\Attribute\Action\Listable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
 use Tourze\EasyAdmin\Attribute\Column\CopyColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use Tourze\EasyAdmin\Attribute\Column\PictureColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
 use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
 use Tourze\EasyAdmin\Attribute\Field\RichTextField;
 use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Filter\Keyword;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainCategoryBundle\Entity\Category;
 use Tourze\TrainCourseBundle\Repository\CourseRepository;
 use Tourze\TrainCourseBundle\Trait\SortableTrait;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 use Tourze\TrainCourseBundle\Trait\UniqueCodeAware;
 
-#[AsPermission(title: '课程信息')]
 #[Copyable]
 #[Listable]
-#[Creatable]
-#[Editable]
-#[Deletable]
 #[ORM\Entity(repositoryClass: CourseRepository::class)]
 #[ORM\Table(name: 'job_training_course', options: ['comment' => '课程信息'])]
 class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
@@ -53,8 +39,6 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
     use SortableTrait;
     use TimestampableTrait;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -72,58 +56,38 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[BoolColumn]
-    #[IndexColumn]
     #[TrackColumn]
     #[Groups(['admin_curd', 'restful_read', 'restful_read', 'restful_write'])]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
-    #[ListColumn(order: 97)]
-    #[FormField(order: 97)]
     private ?bool $valid = false;
 
     #[CopyColumn]
     #[Filterable(label: '所属分类')]
-    #[ListColumn(title: '所属分类')]
-    #[FormField(title: '所属分类', span: 8)]
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private Category $category;
 
     #[CopyColumn(suffix: true)]
-    #[Keyword]
-    #[ListColumn]
-    #[FormField(span: 16)]
     #[ORM\Column(length: 120, options: ['comment' => '课程名称'])]
     private string $title;
 
-    //    #[ListColumn(title: '任课老师')]
-    //    #[FormField(title: '任课老师', span: 8)]
-    #[ORM\ManyToOne]
+    //    //    #[ORM\ManyToOne]
     private ?UserInterface $instructor = null;
 
     #[CopyColumn]
-    #[ListColumn]
-    #[FormField(span: 8)]
     #[ORM\Column(options: ['comment' => '有效期'])]
     private int $validDay = 365;
 
     #[CopyColumn]
-    #[ListColumn]
-    #[FormField(span: 8)]
     #[ORM\Column(options: ['comment' => '毕业学时'])]
     private ?int $learnHour = null;
 
     #[CopyColumn]
-    #[Keyword]
-    #[FormField(span: 8)]
     #[ORM\Column(length: 30, nullable: true, options: ['comment' => '任课老师'])]
     private ?string $teacherName = null;
 
     #[ImagePickerField]
     #[PictureColumn]
-    #[CopyColumn]
-    #[ListColumn]
-    #[FormField]
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '课程封面'])]
     private ?string $coverThumb = null;
 
@@ -132,7 +96,6 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
      */
     #[RichTextField]
     #[CopyColumn]
-    #[FormField]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '课程详情'])]
     private ?string $description = null;
 
@@ -157,8 +120,6 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
     private Collection $evaluates;
 
     #[CopyColumn]
-    #[ListColumn]
-    #[FormField(span: 8)]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true, options: ['comment' => '支付价格'])]
     private ?string $price = '20.00';
 
@@ -345,7 +306,6 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
         return $this->getChapters()->count();
     }
 
-    #[ListColumn(title: '课时')]
     public function getLessonCount(): int
     {
         // 这里只统计有效的
@@ -357,7 +317,6 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
         return $result;
     }
 
-    #[ListColumn(title: '学时')]
     public function getLessonTime(): float
     {
         // 这里只统计有效的

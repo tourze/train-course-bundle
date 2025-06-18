@@ -113,7 +113,7 @@ class LessonRepository extends ServiceEntityRepository
             ->where('l.title LIKE :keyword')
             ->setParameter('keyword', '%' . $keyword . '%');
 
-        if ($chapter) {
+        if ((bool) $chapter) {
             $qb->andWhere('l.chapter = :chapter')
                ->setParameter('chapter', $chapter);
         }

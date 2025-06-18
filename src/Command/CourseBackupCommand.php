@@ -23,7 +23,9 @@ use Tourze\TrainCourseBundle\Service\CourseConfigService;
 )]
 class CourseBackupCommand extends Command
 {
-    public function __construct(
+    
+    public const NAME = 'course:backup';
+public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly CourseRepository $courseRepository,
         private readonly CourseConfigService $configService
@@ -119,7 +121,7 @@ class CourseBackupCommand extends Command
             };
 
             // 压缩备份文件
-            if ($compress) {
+            if ((bool) $compress) {
                 $archivePath = $this->compressBackup($backupDir, $io);
                 $backupInfo['archive_path'] = $archivePath;
             }
@@ -198,7 +200,7 @@ class CourseBackupCommand extends Command
 
         // 备份媒体文件
         $mediaSize = 0;
-        if ($includeMedia) {
+        if ((bool) $includeMedia) {
             $mediaSize = $this->backupMediaFiles($backupDir, $courses, $io);
         }
 
@@ -222,7 +224,7 @@ class CourseBackupCommand extends Command
         
         $io->info("找到 " . count($courses) . " 个更新的课程");
 
-        if (empty($courses)) {
+        if ((bool) empty($courses)) {
             $io->warning('没有找到需要备份的课程');
             return [
                 'course_count' => 0,
@@ -257,7 +259,7 @@ class CourseBackupCommand extends Command
 
         // 备份媒体文件
         $mediaSize = 0;
-        if ($includeMedia) {
+        if ((bool) $includeMedia) {
             $mediaSize = $this->backupMediaFiles($backupDir, $courses, $io);
         }
 

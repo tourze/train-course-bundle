@@ -156,8 +156,6 @@ class LessonTest extends TestCase
         $this->lesson->setVideoUrl('ali://video123');
         
         $apiArray = $this->lesson->retrieveApiArray();
-        
-        $this->assertIsArray($apiArray);
         $this->assertArrayHasKey('id', $apiArray);
         $this->assertArrayHasKey('title', $apiArray);
         $this->assertArrayHasKey('coverThumb', $apiArray);
@@ -172,7 +170,6 @@ class LessonTest extends TestCase
         $this->assertNull($apiArray['id']); // ID为null因为没有设置
         
         // 测试时长格式化
-        $this->assertIsString($apiArray['durationText']);
         $this->assertMatchesRegularExpression('/^\d{2}:\d{2}:\d{2}$/', $apiArray['durationText']);
     }
 
@@ -194,7 +191,7 @@ class LessonTest extends TestCase
         $idProperty->setValue($this->lesson, '1234567890');
         
         // 模拟时间戳
-        $now = new \DateTime();
+        $now = new \DateTimeImmutable();
         $createTimeProperty = $reflection->getProperty('createTime');
         $createTimeProperty->setAccessible(true);
         $createTimeProperty->setValue($this->lesson, $now);
@@ -211,7 +208,6 @@ class LessonTest extends TestCase
             $adminArray = $this->lesson->retrieveAdminArray();
             
             // 如果方法正常执行，验证返回的数组结构
-            $this->assertIsArray($adminArray);
             $this->assertArrayHasKey('id', $adminArray);
             $this->assertArrayHasKey('title', $adminArray);
             $this->assertArrayHasKey('coverThumb', $adminArray);

@@ -118,8 +118,6 @@ class TrainCourseBundleIntegrationTest extends KernelTestCase
         
         $configService = $container->get(CourseConfigService::class);
         $protocols = $configService->getSupportedVideoProtocols();
-        
-        $this->assertIsArray($protocols);
         $this->assertContains('ali://', $protocols);
         $this->assertContains('polyv://', $protocols);
         $this->assertContains('http://', $protocols);
@@ -138,7 +136,6 @@ class TrainCourseBundleIntegrationTest extends KernelTestCase
         $this->assertSame(2048000, $coverConfig['max_size']);
         
         $allowedTypes = $coverConfig['allowed_types'];
-        $this->assertIsArray($allowedTypes);
         $this->assertContains('image/jpeg', $allowedTypes);
         $this->assertContains('image/png', $allowedTypes);
         $this->assertContains('image/webp', $allowedTypes);

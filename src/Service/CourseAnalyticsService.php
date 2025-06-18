@@ -353,7 +353,7 @@ class CourseAnalyticsService
     {
         $versions = $this->versionRepository->findByCourse($course);
         
-        if (count($versions) < 2) {
+        if ((bool) count($versions) < 2) {
             return 0;
         }
 

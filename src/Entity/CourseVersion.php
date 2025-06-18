@@ -4,16 +4,11 @@ namespace Tourze\TrainCourseBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainCourseBundle\Repository\CourseVersionRepository;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
@@ -23,18 +18,12 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
  * 管理课程的版本控制，记录课程的历史变更和版本信息
  * 支持版本回滚和变更追踪
  */
-#[AsPermission(title: '课程版本')]
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: CourseVersionRepository::class)]
 #[ORM\Table(name: 'train_course_version', options: ['comment' => '课程版本'])]
-class CourseVersion
+class CourseVersion implements Stringable
 {
     use TimestampableTrait;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -52,17 +41,12 @@ class CourseVersion
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[ListColumn]
     #[ORM\ManyToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', options: ['comment' => '关联课程'])]
     private ?Course $course = null;
 
-    #[ListColumn]
-    #[ORM\Column(length: 50, nullable: false, options: ['comment' => '版本号'])]
     private ?string $version = null;
 
-    #[ListColumn]
-    #[ORM\Column(length: 200, nullable: true, options: ['comment' => '版本标题'])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '版本描述'])]
@@ -71,12 +55,8 @@ class CourseVersion
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '变更说明'])]
     private ?string $changeLog = null;
 
-    #[ListColumn]
-    #[ORM\Column(length: 50, nullable: false, options: ['comment' => '版本状态', 'default' => 'draft'])]
     private string $status = 'draft';
 
-    #[ListColumn]
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否当前版本', 'default' => false])]
     private bool $isCurrent = false;
 
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '课程数据快照'])]
@@ -88,7 +68,7 @@ class CourseVersion
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '课时数据快照'])]
     private ?array $lessonsSnapshot = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '发布时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '发布时间'])]
     private ?\DateTimeInterface $publishedAt = null;
 
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '发布人'])]
@@ -314,5 +294,10 @@ class CourseVersion
             'created_at' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
             'created_by' => $this->getCreatedBy(),
         ];
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->id;
     }
 }

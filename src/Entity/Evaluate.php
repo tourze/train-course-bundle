@@ -4,16 +4,11 @@ namespace Tourze\TrainCourseBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainCourseBundle\Repository\EvaluateRepository;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
@@ -23,19 +18,13 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
  * 管理用户对课程的评价和评分功能，支持星级评分、文字评价、审核等
  * 一个用户对同一课程只能评价一次
  */
-#[AsPermission(title: '课程评价')]
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: EvaluateRepository::class)]
 #[ORM\Table(name: 'train_course_evaluate', options: ['comment' => '课程评价'])]
 #[ORM\UniqueConstraint(name: 'unique_user_course_evaluate', columns: ['user_id', 'course_id'])]
-class Evaluate
+class Evaluate implements Stringable
 {
     use TimestampableTrait;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -53,24 +42,17 @@ class Evaluate
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[ListColumn]
-    #[ORM\Column(length: 50, nullable: false, options: ['comment' => '用户ID'])]
     private ?string $userId = null;
 
-    #[ListColumn]
     #[ORM\ManyToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', options: ['comment' => '关联课程'])]
     private ?Course $course = null;
 
-    #[ListColumn]
-    #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '评分（1-5星）'])]
     private int $rating = 5;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '评价内容'])]
     private ?string $content = null;
 
-    #[ListColumn]
-    #[ORM\Column(length: 50, nullable: false, options: ['comment' => '评价状态', 'default' => 'published'])]
     private string $status = 'published';
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否匿名', 'default' => false])]
@@ -88,7 +70,7 @@ class Evaluate
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '用户头像'])]
     private ?string $userAvatar = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '审核时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '审核时间'])]
     private ?\DateTimeInterface $auditTime = null;
 
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '审核人员'])]
@@ -381,5 +363,10 @@ class Evaluate
         }
         
         return $this->userNickname ?: '用户' . substr($this->userId, -4);
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->id;
     }
 } 

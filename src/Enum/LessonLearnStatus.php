@@ -2,12 +2,21 @@
 
 namespace Tourze\TrainCourseBundle\Enum;
 
+use Tourze\EnumExtra\Itemable;
+use Tourze\EnumExtra\ItemTrait;
+use Tourze\EnumExtra\Labelable;
+use Tourze\EnumExtra\Selectable;
+use Tourze\EnumExtra\SelectTrait;
+
 /**
  * 课时学习状态枚举
  */
 enum LessonLearnStatus: string
-{
-    case NOT_BUY = 'not_buy';      // 未购买
+ implements Itemable, Labelable, Selectable{
+    
+    use ItemTrait;
+    use SelectTrait;
+case NOT_BUY = 'not_buy';      // 未购买
     case PENDING = 'pending';      // 待学习
     case LEARNING = 'learning';    // 学习中
     case FINISHED = 'finished';    // 已完成

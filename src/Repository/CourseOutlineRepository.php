@@ -61,7 +61,7 @@ class CourseOutlineRepository extends ServiceEntityRepository
             ->where('co.title LIKE :keyword OR co.learningObjectives LIKE :keyword OR co.contentPoints LIKE :keyword')
             ->setParameter('keyword', '%' . $keyword . '%');
 
-        if ($course) {
+        if ((bool) $course) {
             $qb->andWhere('co.course = :course')
                ->setParameter('course', $course);
         }
@@ -113,7 +113,7 @@ class CourseOutlineRepository extends ServiceEntityRepository
             ->where('co.status = :status')
             ->setParameter('status', $status);
 
-        if ($course) {
+        if ((bool) $course) {
             $qb->andWhere('co.course = :course')
                ->setParameter('course', $course);
         }

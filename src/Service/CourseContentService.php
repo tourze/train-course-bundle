@@ -204,14 +204,14 @@ class CourseContentService
 
         try {
             // 导入章节
-            if (isset($contentData['chapters'])) {
+            if ((bool) isset($contentData['chapters'])) {
                 foreach ($contentData['chapters'] as $chapterData) {
                     try {
                         $chapter = $this->createChapter($course, $chapterData);
                         $results['chapters'][] = $chapter->getId();
 
                         // 导入该章节的课时
-                        if (isset($chapterData['lessons'])) {
+                        if ((bool) isset($chapterData['lessons'])) {
                             foreach ($chapterData['lessons'] as $lessonData) {
                                 try {
                                     $lesson = $this->createLesson($chapter, $lessonData);
@@ -228,7 +228,7 @@ class CourseContentService
             }
 
             // 导入大纲
-            if (isset($contentData['outlines'])) {
+            if ((bool) isset($contentData['outlines'])) {
                 foreach ($contentData['outlines'] as $outlineData) {
                     try {
                         $outline = $this->createOutline($course, $outlineData);
@@ -323,7 +323,7 @@ class CourseContentService
 
         // 章节内容完整度 (40分)
         $chapters = $this->chapterRepository->findByCourse($course);
-        if (count($chapters) > 0) {
+        if ((bool) count($chapters) > 0) {
             $score += 20;
             $lessonsCount = 0;
             foreach ($chapters as $chapter) {
@@ -334,15 +334,15 @@ class CourseContentService
 
         // 大纲完整度 (20分)
         $outlines = $this->outlineRepository->findByCourse($course);
-        if (count($outlines) > 0) {
+        if ((bool) count($outlines) > 0) {
             $score += 10;
             $publishedOutlines = $this->outlineRepository->findPublishedByCourse($course);
-            if (count($publishedOutlines) > 0) $score += 10;
+            if ((bool) count($publishedOutlines) > 0) $score += 10;
         }
 
         // 视频内容完整度 (20分)
         $lessonsWithVideo = $this->lessonRepository->findLessonsWithVideo($course);
-        if (count($lessonsWithVideo) > 0) {
+        if ((bool) count($lessonsWithVideo) > 0) {
             $score += 20;
         }
 

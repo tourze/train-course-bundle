@@ -114,7 +114,7 @@ class CourseAuditTest extends TestCase
     {
         $this->assertNull($this->audit->getAuditTime());
         
-        $auditTime = new \DateTime('2024-01-15 10:30:00');
+        $auditTime = new \DateTimeImmutable('2024-01-15 10:30:00');
         $this->audit->setAuditTime($auditTime);
         $this->assertSame($auditTime, $this->audit->getAuditTime());
         
@@ -148,7 +148,7 @@ class CourseAuditTest extends TestCase
     {
         $this->assertNull($this->audit->getDeadline());
         
-        $deadline = new \DateTime('2024-01-20 23:59:59');
+        $deadline = new \DateTimeImmutable('2024-01-20 23:59:59');
         $this->audit->setDeadline($deadline);
         $this->assertSame($deadline, $this->audit->getDeadline());
         
@@ -237,12 +237,12 @@ class CourseAuditTest extends TestCase
         $this->assertFalse($this->audit->isOverdue());
         
         // 设置未来的截止时间，不会超时
-        $futureDeadline = new \DateTime('+1 day');
+        $futureDeadline = new \DateTimeImmutable('+1 day');
         $this->audit->setDeadline($futureDeadline);
         $this->assertFalse($this->audit->isOverdue());
         
         // 设置过去的截止时间，但状态不是pending，不算超时
-        $pastDeadline = new \DateTime('-1 day');
+        $pastDeadline = new \DateTimeImmutable('-1 day');
         $this->audit->setDeadline($pastDeadline);
         $this->audit->setStatus('approved');
         $this->assertFalse($this->audit->isOverdue());
@@ -289,8 +289,8 @@ class CourseAuditTest extends TestCase
     public function test_fluent_interface(): void
     {
         $course = $this->createMock(Course::class);
-        $auditTime = new \DateTime('2024-01-15 10:30:00');
-        $deadline = new \DateTime('2024-01-20 23:59:59');
+        $auditTime = new \DateTimeImmutable('2024-01-15 10:30:00');
+        $deadline = new \DateTimeImmutable('2024-01-20 23:59:59');
         
         $result = $this->audit
             ->setCourse($course)
@@ -332,7 +332,7 @@ class CourseAuditTest extends TestCase
         $this->audit->setCourse($course);
         $this->audit->setAuditType('content');
         $this->audit->setAuditLevel(1);
-        $this->audit->setDeadline(new \DateTime('+7 days'));
+        $this->audit->setDeadline(new \DateTimeImmutable('+7 days'));
         
         $this->assertTrue($this->audit->isPending());
         $this->assertFalse($this->audit->isApproved());
@@ -349,7 +349,7 @@ class CourseAuditTest extends TestCase
         // 3. 完成审核
         $this->audit->setStatus('approved');
         $this->audit->setAuditComment('课程内容符合要求');
-        $this->audit->setAuditTime(new \DateTime());
+        $this->audit->setAuditTime(new \DateTimeImmutable());
         $this->audit->setAuditData(['score' => 85, 'issues' => []]);
         
         $this->assertTrue($this->audit->isApproved());

@@ -191,7 +191,7 @@ class CourseVersionTest extends TestCase
 
     public function test_setAndGetPublishedAt_worksCorrectly(): void
     {
-        $publishedAt = new \DateTime('2023-12-01 15:30:00');
+        $publishedAt = new \DateTimeImmutable('2023-12-01 15:30:00');
         $result = $this->version->setPublishedAt($publishedAt);
         
         $this->assertSame($this->version, $result);
@@ -310,7 +310,7 @@ class CourseVersionTest extends TestCase
         
         // 发布版本
         $this->version->setStatus('published');
-        $this->version->setPublishedAt(new \DateTime());
+        $this->version->setPublishedAt(new \DateTimeImmutable());
         $this->version->setPublishedBy('admin');
         $this->version->setIsCurrent(true);
         

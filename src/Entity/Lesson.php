@@ -12,16 +12,9 @@ use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 use Tourze\EasyAdmin\Attribute\Action\Copyable;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
 use Tourze\EasyAdmin\Attribute\Column\CopyColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use Tourze\EasyAdmin\Attribute\Column\PictureColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
 use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
-use Tourze\EasyAdmin\Attribute\Filter\Keyword;
 use Tourze\TrainCourseBundle\Repository\LessonRepository;
 use Tourze\TrainCourseBundle\Trait\SortableTrait;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
@@ -29,9 +22,6 @@ use Tourze\TrainCourseBundle\Trait\UniqueCodeAware;
 
 
 #[Copyable]
-#[Creatable]
-#[Editable]
-#[Deletable]
 #[ORM\Entity(repositoryClass: LessonRepository::class)]
 #[ORM\Table(name: 'job_training_course_lesson', options: ['comment' => '课时信息'])]
 #[ORM\UniqueConstraint(name: 'job_training_course_lesson_idx_uniq', columns: ['chapter_id', 'title'])]
@@ -41,8 +31,6 @@ class Lesson implements \Stringable, ApiArrayInterface, AdminArrayInterface
     use SortableTrait;
     use TimestampableTrait;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -66,34 +54,24 @@ class Lesson implements \Stringable, ApiArrayInterface, AdminArrayInterface
     private Chapter $chapter;
 
     #[CopyColumn(suffix: true)]
-    #[Keyword]
-    #[ListColumn]
-    #[FormField]
     #[ORM\Column(length: 120, options: ['comment' => '课时名称'])]
     private string $title;
 
     #[ImagePickerField]
     #[PictureColumn]
-    #[CopyColumn]
     #[Groups(['admin_curd'])]
-    #[ListColumn]
-    #[FormField(span: 6)]
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '课时封面'])]
     private ?string $coverThumb = null;
 
     #[CopyColumn]
-    #[ListColumn]
-    #[FormField(span: 9)]
     #[ORM\Column(options: ['comment' => '视频时长（秒）'])]
     private ?int $durationSecond = null;
 
     #[CopyColumn]
-    #[FormField(span: 9)]
     #[ORM\Column(options: ['comment' => '人脸识别间隔(秒)'])]
     private int $faceDetectDuration = 900;
 
     #[CopyColumn]
-    #[FormField]
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '视频地址'])]
     private ?string $videoUrl = null;
 
@@ -224,7 +202,6 @@ class Lesson implements \Stringable, ApiArrayInterface, AdminArrayInterface
     /**
      * 学时计算，学时是按照45分钟一节来计算的
      */
-    #[ListColumn(title: '学时')]
     public function getLessonTime(): float
     {
         return round($this->getDurationSecond() / 60 / 45, 2);

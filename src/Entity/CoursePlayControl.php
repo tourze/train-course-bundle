@@ -4,16 +4,11 @@ namespace Tourze\TrainCourseBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainCourseBundle\Repository\CoursePlayControlRepository;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
@@ -23,18 +18,12 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
  * 管理课程的播放控制策略，包括防快进、倍速控制、水印设置等
  * 确保学习过程的完整性和合规性
  */
-#[AsPermission(title: '播放控制')]
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: CoursePlayControlRepository::class)]
 #[ORM\Table(name: 'train_course_play_control', options: ['comment' => '课程播放控制'])]
-class CoursePlayControl
+class CoursePlayControl implements Stringable
 {
     use TimestampableTrait;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -52,28 +41,19 @@ class CoursePlayControl
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[ListColumn]
     #[ORM\OneToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', options: ['comment' => '关联课程'])]
     private ?Course $course = null;
 
-    #[ListColumn]
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否启用播放控制', 'default' => true])]
     private bool $enabled = true;
 
-    #[ListColumn]
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否允许快进', 'default' => false])]
     private bool $allowFastForward = false;
 
-    #[ListColumn]
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否允许倍速播放', 'default' => false])]
     private bool $allowSpeedControl = false;
 
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '允许的播放倍速'])]
     private ?array $allowedSpeeds = null;
 
-    #[ListColumn]
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否启用水印', 'default' => true])]
     private bool $enableWatermark = true;
 
     #[ORM\Column(length: 200, nullable: true, options: ['comment' => '水印文本'])]
@@ -85,15 +65,11 @@ class CoursePlayControl
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '水印透明度（0-100）'])]
     private ?int $watermarkOpacity = 50;
 
-    #[ListColumn]
-    #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '最大同时播放设备数', 'default' => 3])]
     private int $maxDeviceCount = 3;
 
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '播放凭证有效期（秒）', 'default' => 3600])]
     private int $playAuthDuration = 3600;
 
-    #[ListColumn]
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否启用断点续播', 'default' => true])]
     private bool $enableResume = true;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '最小观看时长（秒）'])]
@@ -102,8 +78,6 @@ class CoursePlayControl
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '观看进度检查间隔（秒）'])]
     private ?int $progressCheckInterval = 30;
 
-    #[ListColumn]
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否启用拖拽控制', 'default' => false])]
     private bool $allowSeeking = false;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否启用右键菜单', 'default' => false])]
@@ -405,5 +379,10 @@ class CoursePlayControl
             'position' => $this->getWatermarkPosition() ?: 'bottom-right',
             'opacity' => $this->getWatermarkOpacity() ?: 50,
         ];
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->id;
     }
 } 

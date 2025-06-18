@@ -100,7 +100,7 @@ class CourseVersionRepository extends ServiceEntityRepository
             ->where('cv.status = :status')
             ->setParameter('status', $status);
 
-        if ($course) {
+        if ((bool) $course) {
             $qb->andWhere('cv.course = :course')
                ->setParameter('course', $course);
         }
@@ -152,7 +152,7 @@ class CourseVersionRepository extends ServiceEntityRepository
             ->where('cv.version LIKE :keyword OR cv.title LIKE :keyword OR cv.description LIKE :keyword')
             ->setParameter('keyword', '%' . $keyword . '%');
 
-        if ($course) {
+        if ((bool) $course) {
             $qb->andWhere('cv.course = :course')
                ->setParameter('course', $course);
         }

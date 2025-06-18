@@ -46,7 +46,7 @@ class EvaluateRepository extends ServiceEntityRepository
             ->where('e.course = :course')
             ->setParameter('course', $course);
 
-        if ($status) {
+        if ((bool) $status) {
             $qb->andWhere('e.status = :status')
                ->setParameter('status', $status);
         }
@@ -89,7 +89,7 @@ class EvaluateRepository extends ServiceEntityRepository
             ->setParameter('rating', $rating)
             ->setParameter('status', 'published');
 
-        if ($course) {
+        if ((bool) $course) {
             $qb->andWhere('e.course = :course')
                ->setParameter('course', $course);
         }
@@ -138,7 +138,7 @@ class EvaluateRepository extends ServiceEntityRepository
             ->where('e.status = :status')
             ->setParameter('status', 'published');
 
-        if ($course) {
+        if ((bool) $course) {
             $qb->andWhere('e.course = :course')
                ->setParameter('course', $course);
         }
@@ -180,7 +180,7 @@ class EvaluateRepository extends ServiceEntityRepository
             ->setParameter('keyword', '%' . $keyword . '%')
             ->setParameter('status', 'published');
 
-        if ($course) {
+        if ((bool) $course) {
             $qb->andWhere('e.course = :course')
                ->setParameter('course', $course);
         }

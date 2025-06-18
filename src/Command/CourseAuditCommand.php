@@ -25,7 +25,9 @@ use Tourze\TrainCourseBundle\Service\CourseConfigService;
 )]
 class CourseAuditCommand extends Command
 {
-    public function __construct(
+    
+    public const NAME = 'train-course:audit';
+public function __construct(
         private EntityManagerInterface $entityManager,
         private CourseRepository $courseRepository,
         private CourseAuditRepository $auditRepository,
@@ -61,9 +63,9 @@ class CourseAuditCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $dryRun = $input->getOption('dry-run');
+        $dryRun = (bool) $input->getOption('dry-run');
 
-        if ($dryRun) {
+        if ((bool) $dryRun) {
             $io->note('运行在试运行模式，不会实际执行操作');
         }
 
@@ -71,15 +73,15 @@ class CourseAuditCommand extends Command
         $autoApprove = $input->getOption('auto-approve');
         $checkTimeout = $input->getOption('check-timeout');
 
-        if ($courseId) {
+        if ((bool) $courseId) {
             return $this->auditSpecificCourse($io, $courseId, $dryRun);
         }
 
-        if ($autoApprove) {
+        if ((bool) $autoApprove) {
             return $this->autoApproveCourses($io, $dryRun);
         }
 
-        if ($checkTimeout) {
+        if ((bool) $checkTimeout) {
             return $this->checkTimeoutAudits($io, $dryRun);
         }
 

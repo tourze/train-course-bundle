@@ -59,7 +59,7 @@ class CourseAuditRepository extends ServiceEntityRepository
             ->where('ca.status = :status')
             ->setParameter('status', 'pending');
 
-        if ($auditor) {
+        if ((bool) $auditor) {
             $qb->andWhere('ca.auditor = :auditor OR ca.auditor IS NULL')
                ->setParameter('auditor', $auditor);
         }
@@ -94,7 +94,7 @@ class CourseAuditRepository extends ServiceEntityRepository
             ->where('ca.auditType = :auditType')
             ->setParameter('auditType', $auditType);
 
-        if ($status) {
+        if ((bool) $status) {
             $qb->andWhere('ca.status = :status')
                ->setParameter('status', $status);
         }
@@ -111,7 +111,7 @@ class CourseAuditRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('ca');
 
-        if ($course) {
+        if ((bool) $course) {
             $qb->where('ca.course = :course')
                ->setParameter('course', $course);
         }
@@ -156,7 +156,7 @@ class CourseAuditRepository extends ServiceEntityRepository
             ->where('ca.auditor = :auditor')
             ->setParameter('auditor', $auditor);
 
-        if ($status) {
+        if ((bool) $status) {
             $qb->andWhere('ca.status = :status')
                ->setParameter('status', $status);
         }

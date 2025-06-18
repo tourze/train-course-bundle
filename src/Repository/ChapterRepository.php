@@ -93,7 +93,7 @@ class ChapterRepository extends ServiceEntityRepository
             ->where('ch.title LIKE :keyword')
             ->setParameter('keyword', '%' . $keyword . '%');
 
-        if ($course) {
+        if ((bool) $course) {
             $qb->andWhere('ch.course = :course')
                ->setParameter('course', $course);
         }

@@ -13,24 +13,14 @@ use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 use Tourze\EasyAdmin\Attribute\Action\Copyable;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
 use Tourze\EasyAdmin\Attribute\Action\CurdAction;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
 use Tourze\EasyAdmin\Attribute\Column\CopyColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Filter\Keyword;
 use Tourze\TrainCourseBundle\Repository\ChapterRepository;
 use Tourze\TrainCourseBundle\Trait\SortableTrait;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 use Tourze\TrainCourseBundle\Trait\UniqueCodeAware;
 
 #[Copyable]
-#[Creatable]
-#[Editable]
-#[Deletable]
 #[ORM\Entity(repositoryClass: ChapterRepository::class)]
 #[ORM\Table(name: 'job_training_course_chapter', options: ['comment' => '课程章节'])]
 #[ORM\UniqueConstraint(name: 'job_training_course_chapter_idx_uniq', columns: ['course_id', 'title'])]
@@ -40,8 +30,6 @@ class Chapter implements \Stringable, ApiArrayInterface
     use SortableTrait;
     use TimestampableTrait;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -65,11 +53,7 @@ class Chapter implements \Stringable, ApiArrayInterface
     #[ORM\JoinColumn(nullable: false)]
     private Course $course;
 
-    #[Keyword]
-    #[ListColumn]
-    #[FormField]
     #[CopyColumn(suffix: true)]
-    #[ORM\Column(length: 100, options: ['comment' => '章节名'])]
     private string $title;
 
     #[Ignore]
@@ -175,7 +159,6 @@ class Chapter implements \Stringable, ApiArrayInterface
         return $this;
     }
 
-    #[ListColumn(title: '课时')]
     public function getLessonCount(): int
     {
         // 这里只统计有效的
@@ -189,7 +172,6 @@ class Chapter implements \Stringable, ApiArrayInterface
         return $result;
     }
 
-    #[ListColumn(title: '学时')]
     public function getLessonTime(): float
     {
         // 这里只统计有效的

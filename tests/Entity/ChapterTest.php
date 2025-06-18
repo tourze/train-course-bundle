@@ -196,8 +196,6 @@ class ChapterTest extends TestCase
         $this->chapter->setCourse($course);
         
         $apiArray = $this->chapter->retrieveApiArray();
-        
-        $this->assertIsArray($apiArray);
         $this->assertArrayHasKey('id', $apiArray);
         $this->assertArrayHasKey('title', $apiArray);
         

@@ -344,8 +344,6 @@ class CourseTest extends TestCase
         $this->course->setCategory($category);
         
         $apiArray = $this->course->retrieveApiArray();
-        
-        $this->assertIsArray($apiArray);
         $this->assertArrayHasKey('id', $apiArray);
         $this->assertArrayHasKey('category', $apiArray);
         $this->assertArrayHasKey('title', $apiArray);
@@ -373,7 +371,6 @@ class CourseTest extends TestCase
         $this->assertSame(0, $apiArray['chapterCount']);
         $this->assertSame(0, $apiArray['durationSecond']);
         $this->assertSame(0, $apiArray['registrationCount']);
-        $this->assertIsArray($apiArray['category']);
     }
 
     public function test_retrieve_admin_array(): void
@@ -387,8 +384,6 @@ class CourseTest extends TestCase
         $this->course->setTeacherName('张老师');
         
         $adminArray = $this->course->retrieveAdminArray();
-        
-        $this->assertIsArray($adminArray);
         $this->assertArrayHasKey('title', $adminArray);
         $this->assertArrayHasKey('description', $adminArray);
         $this->assertArrayHasKey('coverThumb', $adminArray);

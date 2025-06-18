@@ -130,12 +130,12 @@ class CollectRepository extends ServiceEntityRepository
             ->where('c.status = :status')
             ->setParameter('status', 'active');
 
-        if ($userId) {
+        if ((bool) $userId) {
             $qb->andWhere('c.userId = :userId')
                ->setParameter('userId', $userId);
         }
 
-        if ($course) {
+        if ((bool) $course) {
             $qb->andWhere('c.course = :course')
                ->setParameter('course', $course);
         }

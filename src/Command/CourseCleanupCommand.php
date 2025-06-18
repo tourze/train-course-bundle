@@ -26,7 +26,9 @@ use Tourze\TrainCourseBundle\Service\CourseConfigService;
 )]
 class CourseCleanupCommand extends Command
 {
-    public function __construct(
+    
+    public const NAME = 'train-course:cleanup';
+public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly CacheItemPoolInterface $cache,
         private readonly CourseRepository $courseRepository,
@@ -72,10 +74,10 @@ class CourseCleanupCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $dryRun = $input->getOption('dry-run');
+        $dryRun = (bool) $input->getOption('dry-run');
         $days = (int) $input->getOption('days');
 
-        if ($dryRun) {
+        if ((bool) $dryRun) {
             $io->note('运行在试运行模式，不会实际执行操作');
         }
 
@@ -85,7 +87,7 @@ class CourseCleanupCommand extends Command
         $cleanupExpired = $input->getOption('cleanup-expired');
 
         // 如果没有指定任何选项，执行所有清理任务
-        if (!$clearCache && !$cleanupVersions && !$cleanupAudits && !$cleanupExpired) {
+        if (!$clearCache && (bool) !$cleanupVersions&& !$cleanupAudits && !$cleanupExpired) {
             $clearCache = $cleanupVersions = $cleanupAudits = $cleanupExpired = true;
         }
 
@@ -93,19 +95,19 @@ class CourseCleanupCommand extends Command
 
         $totalCleaned = 0;
 
-        if ($clearCache) {
+        if ((bool) $clearCache) {
             $totalCleaned += $this->clearCourseCache($io, $dryRun);
         }
 
-        if ($cleanupVersions) {
+        if ((bool) $cleanupVersions) {
             $totalCleaned += $this->cleanupOldVersions($io, $days, $dryRun);
         }
 
-        if ($cleanupAudits) {
+        if ((bool) $cleanupAudits) {
             $totalCleaned += $this->cleanupOldAudits($io, $days, $dryRun);
         }
 
-        if ($cleanupExpired) {
+        if ((bool) $cleanupExpired) {
             $totalCleaned += $this->cleanupExpiredCourses($io, $dryRun);
         }
 

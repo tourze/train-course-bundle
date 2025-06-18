@@ -4,16 +4,11 @@ namespace Tourze\TrainCourseBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainCourseBundle\Repository\CollectRepository;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
@@ -23,19 +18,13 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
  * 管理用户对课程的收藏功能，支持收藏分组和备注
  * 一个用户对同一课程只能收藏一次
  */
-#[AsPermission(title: '课程收藏')]
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: CollectRepository::class)]
 #[ORM\Table(name: 'train_course_collect', options: ['comment' => '课程收藏'])]
 #[ORM\UniqueConstraint(name: 'unique_user_course', columns: ['user_id', 'course_id'])]
-class Collect
+class Collect implements Stringable
 {
     use TimestampableTrait;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -53,21 +42,14 @@ class Collect
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[ListColumn]
-    #[ORM\Column(length: 50, nullable: false, options: ['comment' => '用户ID'])]
     private ?string $userId = null;
 
-    #[ListColumn]
     #[ORM\ManyToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', options: ['comment' => '关联课程'])]
     private ?Course $course = null;
 
-    #[ListColumn]
-    #[ORM\Column(length: 50, nullable: false, options: ['comment' => '收藏状态', 'default' => 'active'])]
     private string $status = 'active';
 
-    #[ListColumn]
-    #[ORM\Column(length: 100, nullable: true, options: ['comment' => '收藏分组'])]
     private ?string $collectGroup = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '收藏备注'])]
@@ -216,5 +198,10 @@ class Collect
             'hidden' => '已隐藏',
             default => '未知状态',
         };
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->id;
     }
 } 

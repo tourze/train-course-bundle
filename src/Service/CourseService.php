@@ -129,7 +129,7 @@ class CourseService
         $supportedProtocols = $this->configService->getSupportedVideoProtocols();
 
         foreach ($supportedProtocols as $protocol) {
-            if (str_starts_with($videoUrl, $protocol)) {
+            if ((bool) str_starts_with($videoUrl, $protocol)) {
                 return true;
             }
         }

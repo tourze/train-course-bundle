@@ -4,16 +4,11 @@ namespace Tourze\TrainCourseBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainCourseBundle\Repository\CourseOutlineRepository;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
@@ -23,18 +18,12 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
  * 存储课程的详细大纲信息，包括学习目标、内容要点、考核标准等
  * 支持结构化的课程内容组织和管理
  */
-#[AsPermission(title: '课程大纲')]
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: CourseOutlineRepository::class)]
 #[ORM\Table(name: 'train_course_outline', options: ['comment' => '课程大纲'])]
-class CourseOutline
+class CourseOutline implements Stringable
 {
     use TimestampableTrait;
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -52,13 +41,10 @@ class CourseOutline
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[ListColumn]
     #[ORM\ManyToOne(targetEntity: Course::class, inversedBy: 'outlines')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', options: ['comment' => '关联课程'])]
     private ?Course $course = null;
 
-    #[ListColumn]
-    #[ORM\Column(length: 200, options: ['comment' => '大纲标题'])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '学习目标'])]
@@ -76,16 +62,10 @@ class CourseOutline
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '参考资料'])]
     private ?string $references = null;
 
-    #[ListColumn]
-    #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '预计学时（分钟）'])]
     private ?int $estimatedMinutes = null;
 
-    #[ListColumn]
-    #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '排序号', 'default' => 0])]
     private int $sortNumber = 0;
 
-    #[ListColumn]
-    #[ORM\Column(length: 50, nullable: false, options: ['comment' => '状态', 'default' => 'draft'])]
     private string $status = 'draft';
 
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '扩展属性'])]
@@ -253,5 +233,10 @@ class CourseOutline
     public function getEstimatedHours(): float
     {
         return $this->estimatedMinutes ? round($this->estimatedMinutes / 60, 2) : 0;
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->id;
     }
 } 

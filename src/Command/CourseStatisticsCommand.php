@@ -27,7 +27,9 @@ use Tourze\TrainCourseBundle\Service\CourseAnalyticsService;
 )]
 class CourseStatisticsCommand extends Command
 {
-    public function __construct(
+    
+    public const NAME = 'train-course:statistics';
+public function __construct(
         private readonly CourseRepository $courseRepository,
         private readonly CollectRepository $collectRepository,
         private readonly EvaluateRepository $evaluateRepository,
@@ -78,7 +80,7 @@ class CourseStatisticsCommand extends Command
         $courseId = $input->getOption('course-id');
         $topCount = (int)$input->getOption('top');
 
-        if ($courseId) {
+        if ((bool) $courseId) {
             return $this->showCourseStatistics($io, $courseId, $format, $outputFile);
         }
 
@@ -117,7 +119,7 @@ class CourseStatisticsCommand extends Command
             'version' => $this->getVersionStatistics(),
         ];
 
-        if ($detailed) {
+        if ((bool) $detailed) {
             $statistics['detailed'] = [
                 'top_courses' => $this->getTopCourses($topCount),
                 'category_stats' => $this->getCategoryStatistics(),
@@ -319,7 +321,7 @@ class CourseStatisticsCommand extends Command
         }
         $courseTable->render();
 
-        if ($detailed && isset($statistics['detailed']['top_courses'])) {
+        if ($detailed && (bool) isset($statistics['detailed']['top_courses'])) {
             $io->section('热门课程排行榜');
             $topTable = new Table($io);
             $topTable->setHeaders(['排名', '课程标题', '受欢迎度', '质量分数', '收藏数', '评价数', '平均评分']);
@@ -346,7 +348,7 @@ class CourseStatisticsCommand extends Command
     {
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
-        if ($outputFile) {
+        if ((bool) $outputFile) {
             file_put_contents($outputFile, $json);
             $io->success(sprintf('统计报告已保存到: %s', $outputFile));
         } else {
@@ -372,7 +374,7 @@ class CourseStatisticsCommand extends Command
             $csv[] = ['课程统计', $status, $count];
         }
 
-        if ($outputFile) {
+        if ((bool) $outputFile) {
             $fp = fopen($outputFile, 'w');
             foreach ($csv as $row) {
                 fputcsv($fp, $row);
@@ -409,7 +411,7 @@ class CourseStatisticsCommand extends Command
         $popularityTable->setHeaders(['指标', '值']);
 
         foreach ($report['popularity_metrics'] as $key => $value) {
-            if (is_array($value)) {
+            if ((bool) is_array($value)) {
                 $value = json_encode($value);
             }
             $popularityTable->addRow([ucfirst(str_replace('_', ' ', $key)), $value]);

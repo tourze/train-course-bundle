@@ -175,7 +175,7 @@ class EvaluateTest extends TestCase
 
     public function test_setAndGetAuditTime_worksCorrectly(): void
     {
-        $auditTime = new \DateTime('2024-01-15 10:30:00');
+        $auditTime = new \DateTimeImmutable('2024-01-15 10:30:00');
         $result = $this->evaluate->setAuditTime($auditTime);
         
         $this->assertSame($this->evaluate, $result);
@@ -413,7 +413,7 @@ class EvaluateTest extends TestCase
         $this->evaluate->setUserAvatar(null);
         $this->assertNull($this->evaluate->getUserAvatar());
         
-        $this->evaluate->setAuditTime(new \DateTime());
+        $this->evaluate->setAuditTime(new \DateTimeImmutable());
         $this->evaluate->setAuditTime(null);
         $this->assertNull($this->evaluate->getAuditTime());
         
