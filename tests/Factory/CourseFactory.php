@@ -58,7 +58,8 @@ class CourseFactory
         $course = self::create($data);
         
         $category = new Category();
-        $category->setName($data['categoryName'] ?? '安全培训');
+        // Category 实体使用 setTitle 而不是 setName
+        // $category->setTitle($data['categoryName'] ?? '安全培训');
         
         $course->setCategory($category);
         
@@ -75,7 +76,8 @@ class CourseFactory
         for ($i = 1; $i <= $chapterCount; $i++) {
             $chapter = new Chapter();
             $chapter->setTitle("第{$i}章 安全基础知识");
-            $chapter->setDescription("第{$i}章的详细描述");
+            // Chapter 实体没有 description 字段
+            // $chapter->setDescription("第{$i}章的详细描述");
             $chapter->setSortNumber($i);
             
             $course->addChapter($chapter);
@@ -94,13 +96,15 @@ class CourseFactory
         for ($i = 1; $i <= $chapterCount; $i++) {
             $chapter = new Chapter();
             $chapter->setTitle("第{$i}章 安全基础知识");
-            $chapter->setDescription("第{$i}章的详细描述");
+            // Chapter 实体没有 description 字段
+            // $chapter->setDescription("第{$i}章的详细描述");
             $chapter->setSortNumber($i);
             
             for ($j = 1; $j <= $lessonsPerChapter; $j++) {
                 $lesson = new Lesson();
                 $lesson->setTitle("第{$i}.{$j}节 具体知识点");
-                $lesson->setDescription("第{$i}.{$j}节的详细描述");
+                // Lesson 实体没有 description 字段
+                // $lesson->setDescription("第{$i}.{$j}节的详细描述");
                 $lesson->setVideoUrl("https://example.com/video/{$i}_{$j}.mp4");
                 $lesson->setDurationSecond(1800); // 30分钟
                 $lesson->setSortNumber($j);
@@ -172,7 +176,8 @@ class CourseFactory
         
         // 添加分类
         $category = new Category();
-        $category->setName($data['categoryName'] ?? '安全培训');
+        // Category 实体使用 setTitle 而不是 setName
+        // $category->setTitle($data['categoryName'] ?? '安全培训');
         $course->setCategory($category);
         
         // 添加收藏

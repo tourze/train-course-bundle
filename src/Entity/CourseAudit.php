@@ -284,6 +284,32 @@ class CourseAudit implements Stringable
         };
     }
 
+    /**
+     * 获取提交时间（使用创建时间作为提交时间）
+     */
+    public function getSubmitTime(): ?\DateTimeInterface
+    {
+        return $this->getCreateTime();
+    }
+
+    /**
+     * 设置审核人ID（兼容旧方法名）
+     */
+    public function setAuditorId(?string $auditorId): static
+    {
+        $this->auditor = $auditorId;
+        return $this;
+    }
+
+    /**
+     * 设置拒绝原因（使用审核意见字段）
+     */
+    public function setRejectReason(?string $reason): static
+    {
+        $this->auditComment = $reason;
+        return $this;
+    }
+
     public function __toString(): string
     {
         return (string) $this->id;

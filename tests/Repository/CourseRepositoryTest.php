@@ -32,15 +32,15 @@ class CourseRepositoryTest extends TestCase
         $reflection = new \ReflectionClass(CourseRepository::class);
         
         $findValidCoursesMethod = $reflection->getMethod('findValidCourses');
-        $this->assertSame('array', $findValidCoursesMethod->getReturnType()->getName());
+        $this->assertSame('array', (string) $findValidCoursesMethod->getReturnType());
         
         $findByCategoryMethod = $reflection->getMethod('findByCategory');
-        $this->assertSame('array', $findByCategoryMethod->getReturnType()->getName());
+        $this->assertSame('array', (string) $findByCategoryMethod->getReturnType());
         
         $searchCoursesMethod = $reflection->getMethod('searchCourses');
-        $this->assertSame('array', $searchCoursesMethod->getReturnType()->getName());
+        $this->assertSame('array', (string) $searchCoursesMethod->getReturnType());
         
         $getStatisticsMethod = $reflection->getMethod('getStatistics');
-        $this->assertSame('array', $getStatisticsMethod->getReturnType()->getName());
+        $this->assertSame('array', (string) $getStatisticsMethod->getReturnType());
     }
 } 

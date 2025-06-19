@@ -149,4 +149,41 @@ class CourseRepository extends ServiceEntityRepository
                   ->getQuery()
                   ->getResult();
     }
+
+    /**
+     * 查找自指定日期以来更新的课程
+     * 
+     * @param \DateTimeInterface $since
+     * @return Course[]
+     */
+    public function findUpdatedSince(\DateTimeInterface $since): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.updateTime >= :since')
+            ->setParameter('since', $since)
+            ->orderBy('c.updateTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 查找过期的课程
+     * 
+     * @param \DateTimeInterface|null $date 指定日期，默认为当前时间
+     * @return Course[]
+     */
+    public function findExpiredCourses(?\DateTimeInterface $date = null): array
+    {
+        if ($date === null) {
+            $date = new \DateTime();
+        }
+
+        return $this->createQueryBuilder('c')
+            ->where('c.validEndTime IS NOT NULL')
+            ->andWhere('c.validEndTime < :date')
+            ->setParameter('date', $date)
+            ->orderBy('c.validEndTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

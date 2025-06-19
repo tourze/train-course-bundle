@@ -139,4 +139,23 @@ class CourseConfigService
             'audit' => $this->getAuditConfig(),
         ];
     }
+
+    /**
+     * 获取配置值
+     * 
+     * @param string $key 配置键，支持点号分隔的多级键
+     * @param mixed $default 默认值
+     * @return mixed
+     */
+    public function get(string $key, mixed $default = null): mixed
+    {
+        // 处理 course.auto_audit_enabled 这种格式
+        $paramKey = 'train_course.' . str_replace('.', '.', $key);
+        
+        try {
+            return $this->parameterBag->get($paramKey);
+        } catch (\InvalidArgumentException $e) {
+            return $default;
+        }
+    }
 } 

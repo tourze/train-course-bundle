@@ -179,4 +179,25 @@ class CourseVersionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * 查找旧版本（超过指定天数的版本）
+     * 
+     * @param int $days 天数
+     * @return CourseVersion[]
+     */
+    public function findOldVersions(int $days): array
+    {
+        $date = new \DateTime();
+        $date->modify("-{$days} days");
+
+        return $this->createQueryBuilder('cv')
+            ->where('cv.createTime < :date')
+            ->andWhere('cv.isCurrent = :isCurrent')
+            ->setParameter('date', $date)
+            ->setParameter('isCurrent', false)
+            ->orderBy('cv.createTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 } 

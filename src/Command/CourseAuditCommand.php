@@ -20,12 +20,11 @@ use Tourze\TrainCourseBundle\Service\CourseConfigService;
  * 自动化处理课程审核任务，包括超时检测、自动审核等功能
  */
 #[AsCommand(
-    name: 'train-course:audit',
+    name: self::NAME,
     description: '处理课程审核任务'
 )]
 class CourseAuditCommand extends Command
 {
-    
     public const NAME = 'train-course:audit';
 public function __construct(
         private EntityManagerInterface $entityManager,
@@ -102,7 +101,7 @@ public function __construct(
     {
         $io->section('自动审核课程');
 
-        if (!$this->configService->get('course.auto_audit_enabled', false)) {
+        if ((bool) $this->configService->get('course.auto_audit_enabled', false) === false) {
             $io->warning('自动审核功能未启用');
             return Command::SUCCESS;
         }
@@ -158,7 +157,7 @@ public function __construct(
 
             if (!$dryRun) {
                 // 可以选择自动拒绝或重新分配审核员
-                if ($this->configService->get('course.auto_reject_timeout', false)) {
+                if ((bool) $this->configService->get('course.auto_reject_timeout', false)) {
                     $audit->setStatus('rejected');
                     $audit->setAuditTime(new \DateTime());
                     $audit->setAuditorId('system');
@@ -192,13 +191,13 @@ public function __construct(
         $io->section(sprintf('审核课程 ID: %s', $courseId));
 
         $course = $this->courseRepository->find($courseId);
-        if (!$course) {
+        if ($course === null) {
             $io->error(sprintf('课程 ID %s 不存在', $courseId));
             return Command::FAILURE;
         }
 
         $audit = $this->auditRepository->findLatestByCourse($course);
-        if (!$audit || $audit->getStatus() !== 'pending') {
+        if ($audit === null || $audit->getStatus() !== 'pending') {
             $io->warning(sprintf('课程 %s 没有待审核的记录', $course->getTitle()));
             return Command::SUCCESS;
         }
@@ -255,7 +254,7 @@ public function __construct(
         $course = $audit->getCourse();
 
         // 检查课程基础信息完整性
-        if (!$course->getTitle() || !$course->getDescription()) {
+        if (empty($course->getTitle()) || empty($course->getDescription())) {
             return false;
         }
 
@@ -265,17 +264,17 @@ public function __construct(
         }
 
         // 检查是否有封面图
-        if (!$course->getCoverThumb()) {
+        if (empty($course->getCoverThumb())) {
             return false;
         }
 
         // 检查学时设置
-        if (!$course->getLearnHour() || $course->getLearnHour() <= 0) {
+        if ($course->getLearnHour() === null || $course->getLearnHour() <= 0) {
             return false;
         }
 
         // 检查价格设置
-        if (!$course->getPrice()) {
+        if ($course->getPrice() === null) {
             return false;
         }
 

@@ -2,7 +2,7 @@
 
 namespace Tourze\TrainCourseBundle\Service;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -53,7 +53,7 @@ class CourseService
             $vid = trim($vid);
 
             return $this->cache->get("ali_video_playUrl_{$vid}", function (ItemInterface $item) use ($vid) {
-                $item->expiresAt(Carbon::now()->addMinutes($this->configService->getVideoPlayUrlCacheTime()));
+                $item->expiresAt(CarbonImmutable::now()->addMinutes($this->configService->getVideoPlayUrlCacheTime()));
 
                 try {
                     $playInfo = $this->videoManageService->getPlayInfo($vid);

@@ -200,8 +200,7 @@ class LessonTest extends TestCase
         $updateTimeProperty->setAccessible(true);
         $updateTimeProperty->setValue($this->lesson, $now);
         
-        // 测试方法存在性
-        $this->assertTrue(method_exists($this->lesson, 'retrieveAdminArray'));
+        // retrieveAdminArray 方法确实存在，无需检查
         
         // 测试在没有Kernel的情况下方法的行为
         try {

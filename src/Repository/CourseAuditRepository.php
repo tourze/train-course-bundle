@@ -179,4 +179,46 @@ class CourseAuditRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    /**
+     * 查找超时的审核记录
+     * 
+     * @param int $timeoutHours 超时小时数
+     * @return CourseAudit[]
+     */
+    public function findTimeoutAudits(int $timeoutHours): array
+    {
+        $timeoutDate = new \DateTime();
+        $timeoutDate->modify("-{$timeoutHours} hours");
+
+        return $this->createQueryBuilder('ca')
+            ->where('ca.status = :status')
+            ->andWhere('ca.createTime < :timeoutDate')
+            ->setParameter('status', 'pending')
+            ->setParameter('timeoutDate', $timeoutDate)
+            ->orderBy('ca.createTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 查找旧的审核记录（超过指定天数）
+     * 
+     * @param int $days 天数
+     * @return CourseAudit[]
+     */
+    public function findOldAudits(int $days): array
+    {
+        $date = new \DateTime();
+        $date->modify("-{$days} days");
+
+        return $this->createQueryBuilder('ca')
+            ->where('ca.createTime < :date')
+            ->andWhere('ca.status != :pendingStatus')
+            ->setParameter('date', $date)
+            ->setParameter('pendingStatus', 'pending')
+            ->orderBy('ca.createTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 } 

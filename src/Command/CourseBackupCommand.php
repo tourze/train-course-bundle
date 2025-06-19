@@ -18,12 +18,11 @@ use Tourze\TrainCourseBundle\Service\CourseConfigService;
  * 用于备份课程数据，支持全量备份和增量备份
  */
 #[AsCommand(
-    name: 'course:backup',
+    name: self::NAME,
     description: '备份课程数据'
 )]
 class CourseBackupCommand extends Command
 {
-    
     public const NAME = 'course:backup';
 public function __construct(
         private readonly EntityManagerInterface $entityManager,
@@ -105,7 +104,7 @@ public function __construct(
                 return Command::FAILURE;
             }
 
-            if ($type === 'incremental' && !$since) {
+            if ($type === 'incremental' && empty($since)) {
                 $io->error('增量备份必须指定起始时间');
                 return Command::FAILURE;
             }
@@ -372,7 +371,7 @@ public function __construct(
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = floor(($bytes > 0 ? log($bytes) : 0) / log(1024));
         $pow = min($pow, count($units) - 1);
         
         $bytes /= (1 << (10 * $pow));

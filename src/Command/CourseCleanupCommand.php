@@ -21,7 +21,7 @@ use Tourze\TrainCourseBundle\Service\CourseConfigService;
  * 清理过期数据、缓存和临时文件，维护系统性能
  */
 #[AsCommand(
-    name: 'train-course:cleanup',
+    name: self::NAME,
     description: '清理课程相关的过期数据和缓存'
 )]
 class CourseCleanupCommand extends Command
