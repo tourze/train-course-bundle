@@ -42,14 +42,17 @@ class Collect implements Stringable
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
+    #[ORM\Column(type: Types::STRING, nullable: false, options: ['comment' => '用户ID'])]
     private ?string $userId = null;
 
     #[ORM\ManyToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', options: ['comment' => '关联课程'])]
     private ?Course $course = null;
 
+    #[ORM\Column(type: Types::STRING, length: 20, nullable: false, options: ['comment' => '收藏状态', 'default' => 'active'])]
     private string $status = 'active';
 
+    #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '收藏分组'])]
     private ?string $collectGroup = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '收藏备注'])]

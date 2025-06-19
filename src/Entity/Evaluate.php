@@ -42,17 +42,20 @@ class Evaluate implements Stringable
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
+    #[ORM\Column(type: Types::STRING, nullable: false, options: ['comment' => '用户ID'])]
     private ?string $userId = null;
 
     #[ORM\ManyToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', options: ['comment' => '关联课程'])]
     private ?Course $course = null;
 
+    #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '评分(1-5星)', 'default' => 5])]
     private int $rating = 5;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '评价内容'])]
     private ?string $content = null;
 
+    #[ORM\Column(type: Types::STRING, length: 20, nullable: false, options: ['comment' => '评价状态', 'default' => 'published'])]
     private string $status = 'published';
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否匿名', 'default' => false])]

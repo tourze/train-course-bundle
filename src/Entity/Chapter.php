@@ -54,6 +54,7 @@ class Chapter implements \Stringable, ApiArrayInterface
     private Course $course;
 
     #[CopyColumn(suffix: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: false, options: ['comment' => '章节标题'])]
     private string $title;
 
     #[Ignore]
