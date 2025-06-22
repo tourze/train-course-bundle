@@ -7,8 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\CollectRepository;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
@@ -24,6 +23,7 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 class Collect implements Stringable
 {
     use TimestampableTrait;
+    use BlameableAware;
 
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
@@ -31,16 +31,6 @@ class Collect implements Stringable
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
-
-    #[CreatedByColumn]
-    #[Groups(['restful_read'])]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[Groups(['restful_read'])]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
 
     #[ORM\Column(type: Types::STRING, nullable: false, options: ['comment' => '用户ID'])]
     private ?string $userId = null;

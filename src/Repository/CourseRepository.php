@@ -152,7 +152,7 @@ class CourseRepository extends ServiceEntityRepository
 
     /**
      * 查找自指定日期以来更新的课程
-     * 
+     *
      * @param \DateTimeInterface $since
      * @return Course[]
      */
@@ -168,7 +168,7 @@ class CourseRepository extends ServiceEntityRepository
 
     /**
      * 查找过期的课程
-     * 
+     *
      * @param \DateTimeInterface|null $date 指定日期，默认为当前时间
      * @return Course[]
      */

@@ -182,7 +182,7 @@ class CourseVersionRepository extends ServiceEntityRepository
 
     /**
      * 查找旧版本（超过指定天数的版本）
-     * 
+     *
      * @param int $days 天数
      * @return CourseVersion[]
      */

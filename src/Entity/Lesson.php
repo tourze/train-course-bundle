@@ -2,26 +2,20 @@
 
 namespace Tourze\TrainCourseBundle\Entity;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Copyable;
-use Tourze\EasyAdmin\Attribute\Column\CopyColumn;
-use Tourze\EasyAdmin\Attribute\Column\PictureColumn;
-use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\LessonRepository;
 use Tourze\TrainCourseBundle\Trait\SortableTrait;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 use Tourze\TrainCourseBundle\Trait\UniqueCodeAware;
 
 
-#[Copyable]
 #[ORM\Entity(repositoryClass: LessonRepository::class)]
 #[ORM\Table(name: 'job_training_course_lesson', options: ['comment' => '课时信息'])]
 #[ORM\UniqueConstraint(name: 'job_training_course_lesson_idx_uniq', columns: ['chapter_id', 'title'])]
@@ -30,6 +24,7 @@ class Lesson implements \Stringable, ApiArrayInterface, AdminArrayInterface
     use UniqueCodeAware;
     use SortableTrait;
     use TimestampableTrait;
+    use BlameableAware;
 
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
@@ -38,46 +33,29 @@ class Lesson implements \Stringable, ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[CreatedByColumn]
-    #[Groups(['restful_read'])]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[Groups(['restful_read'])]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
-
-    #[CopyColumn]
     #[ORM\ManyToOne(inversedBy: 'lessons')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Chapter $chapter;
 
-    #[CopyColumn(suffix: true)]
     #[ORM\Column(length: 120, options: ['comment' => '课时名称'])]
     private string $title;
 
-    #[ImagePickerField]
-    #[PictureColumn]
     #[Groups(['admin_curd'])]
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '课时封面'])]
     private ?string $coverThumb = null;
 
-    #[CopyColumn]
     #[ORM\Column(options: ['comment' => '视频时长（秒）'])]
     private ?int $durationSecond = null;
 
-    #[CopyColumn]
     #[ORM\Column(options: ['comment' => '人脸识别间隔(秒)'])]
     private int $faceDetectDuration = 900;
 
-    #[CopyColumn]
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '视频地址'])]
     private ?string $videoUrl = null;
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if (null === $this->getId()) {
             return '';
         }
 
@@ -89,29 +67,6 @@ class Lesson implements \Stringable, ApiArrayInterface, AdminArrayInterface
         return $this->id;
     }
 
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
 
     public function getChapter(): Chapter
     {
@@ -187,7 +142,7 @@ class Lesson implements \Stringable, ApiArrayInterface, AdminArrayInterface
 
     public function retrieveApiArray(): array
     {
-        $durationText = Carbon::today()->addSeconds($this->getDurationSecond())->format('H:i:s');
+        $durationText = CarbonImmutable::today()->addSeconds($this->getDurationSecond())->format('H:i:s');
 
         return [
             'id' => $this->getId(),

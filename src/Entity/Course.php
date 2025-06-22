@@ -13,24 +13,13 @@ use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Copyable;
-use Tourze\EasyAdmin\Attribute\Action\CurdAction;
-use Tourze\EasyAdmin\Attribute\Action\Listable;
-use Tourze\EasyAdmin\Attribute\Column\CopyColumn;
-use Tourze\EasyAdmin\Attribute\Column\PictureColumn;
-use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
-use Tourze\EasyAdmin\Attribute\Field\RichTextField;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCategoryBundle\Entity\Category;
 use Tourze\TrainCourseBundle\Repository\CourseRepository;
 use Tourze\TrainCourseBundle\Trait\SortableTrait;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 use Tourze\TrainCourseBundle\Trait\UniqueCodeAware;
 
-#[Copyable]
-#[Listable]
 #[ORM\Entity(repositoryClass: CourseRepository::class)]
 #[ORM\Table(name: 'job_training_course', options: ['comment' => '课程信息'])]
 class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
@@ -38,6 +27,7 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
     use UniqueCodeAware;
     use SortableTrait;
     use TimestampableTrait;
+    use BlameableAware;
 
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
@@ -46,61 +36,37 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[CreatedByColumn]
-    #[Groups(['restful_read'])]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[Groups(['restful_read'])]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
-
     #[TrackColumn]
     #[Groups(['admin_curd', 'restful_read', 'restful_read', 'restful_write'])]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
     private ?bool $valid = false;
 
-    #[CopyColumn]
-    #[Filterable(label: '所属分类')]
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private Category $category;
 
-    #[CopyColumn(suffix: true)]
     #[ORM\Column(length: 120, options: ['comment' => '课程名称'])]
     private string $title;
 
     //    //    #[ORM\ManyToOne]
     private ?UserInterface $instructor = null;
 
-    #[CopyColumn]
     #[ORM\Column(options: ['comment' => '有效期'])]
     private int $validDay = 365;
 
-    #[CopyColumn]
     #[ORM\Column(options: ['comment' => '毕业学时'])]
     private ?int $learnHour = null;
 
-    #[CopyColumn]
     #[ORM\Column(length: 30, nullable: true, options: ['comment' => '任课老师'])]
     private ?string $teacherName = null;
 
-    #[ImagePickerField]
-    #[PictureColumn]
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '课程封面'])]
     private ?string $coverThumb = null;
 
-    /**
-     * @BraftEditor()
-     */
-    #[RichTextField]
-    #[CopyColumn]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '课程详情'])]
     private ?string $description = null;
 
     #[Ignore]
-    #[CurdAction(label: '课程章节', drawerWidth: 1200)]
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Chapter::class, orphanRemoval: true)]
     #[ORM\OrderBy(['sortNumber' => 'DESC', 'id' => 'ASC'])]
     private Collection $chapters;
@@ -119,7 +85,6 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
     #[ORM\OrderBy(['createTime' => 'DESC'])]
     private Collection $evaluates;
 
-    #[CopyColumn]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true, options: ['comment' => '支付价格'])]
     private ?string $price = '20.00';
 
@@ -137,7 +102,7 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if (null === $this->getId()) {
             return '';
         }
 
@@ -289,12 +254,7 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
 
     public function removeChapter(Chapter $chapter): static
     {
-        if ($this->chapters->removeElement($chapter)) {
-            // set the owning side to null (unless already changed)
-            if ($chapter->getCourse() === $this) {
-                $chapter->setCourse(null);
-            }
-        }
+        $this->chapters->removeElement($chapter);
 
         return $this;
     }
@@ -345,9 +305,9 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
             'id' => $this->getId(),
             'category' => $this->getCategory()->retrieveApiArray(),
             'title' => $this->getTitle(),
-            'instructor' => $this->getInstructor() ? [
+            'instructor' => null !== $this->getInstructor() ? [
                 'id' => method_exists($this->getInstructor(), 'getId') ? $this->getInstructor()->getId() : null,
-                'name' => method_exists($this->getInstructor(), 'getUserIdentifier') ? $this->getInstructor()->getUserIdentifier() : null,
+                'name' => $this->getInstructor()->getUserIdentifier(),
             ] : null,
             'validDay' => $this->getValidDay(),
             'learnHour' => $this->getLearnHour(),

@@ -81,13 +81,13 @@ public function __construct(
             $io->note('运行在试运行模式，不会实际执行操作');
         }
 
-        $clearCache = $input->getOption('clear-cache');
-        $cleanupVersions = $input->getOption('cleanup-versions');
-        $cleanupAudits = $input->getOption('cleanup-audits');
-        $cleanupExpired = $input->getOption('cleanup-expired');
+        $clearCache = (bool) $input->getOption('clear-cache');
+        $cleanupVersions = (bool) $input->getOption('cleanup-versions');
+        $cleanupAudits = (bool) $input->getOption('cleanup-audits');
+        $cleanupExpired = (bool) $input->getOption('cleanup-expired');
 
         // 如果没有指定任何选项，执行所有清理任务
-        if (!$clearCache && (bool) !$cleanupVersions&& !$cleanupAudits && !$cleanupExpired) {
+        if (!$clearCache && !$cleanupVersions && !$cleanupAudits && !$cleanupExpired) {
             $clearCache = $cleanupVersions = $cleanupAudits = $cleanupExpired = true;
         }
 
@@ -160,8 +160,7 @@ public function __construct(
     {
         $io->section(sprintf('清理 %d 天前的课程版本', $days));
 
-        $cutoffDate = new \DateTime(sprintf('-%d days', $days));
-        $oldVersions = $this->versionRepository->findOldVersions($cutoffDate);
+        $oldVersions = $this->versionRepository->findOldVersions($days);
 
         $io->text(sprintf('找到 %d 个过期版本', count($oldVersions)));
 
@@ -202,8 +201,7 @@ public function __construct(
     {
         $io->section(sprintf('清理 %d 天前的审核记录', $days));
 
-        $cutoffDate = new \DateTime(sprintf('-%d days', $days));
-        $oldAudits = $this->auditRepository->findOldAudits($cutoffDate);
+        $oldAudits = $this->auditRepository->findOldAudits($days);
 
         $io->text(sprintf('找到 %d 个过期审核记录', count($oldAudits)));
 
@@ -248,7 +246,7 @@ public function __construct(
         $io->text(sprintf('找到 %d 个过期课程', count($expiredCourses)));
 
         $cleanedCount = 0;
-        $autoCleanup = $this->configService->get('course.auto_cleanup_expired', false);
+        $autoCleanup = (bool) $this->configService->get('course.auto_cleanup_expired', false);
 
         if (!$autoCleanup) {
             $io->warning('自动清理过期课程功能未启用');
@@ -261,16 +259,14 @@ public function __construct(
                 continue;
             }
 
-            $io->text(sprintf('标记删除课程: %s (ID: %s), 过期时间: %s',
+            $io->text(sprintf('删除课程: %s (ID: %s)',
                 $course->getTitle(),
-                $course->getId(),
-                $course->getExpireTime()?->format('Y-m-d H:i:s') ?? '未设置'
+                $course->getId()
             ));
 
             if (!$dryRun) {
-                // 软删除而不是物理删除
-                $course->setDeletedAt(new \DateTime());
-                $this->entityManager->persist($course);
+                // 物理删除课程
+                $this->entityManager->remove($course);
                 $cleanedCount++;
             } else {
                 $cleanedCount++;
@@ -290,13 +286,13 @@ public function __construct(
      */
     private function shouldCleanupCourse($course): bool
     {
-        // 检查课程是否已经过期
-        if (!$course->getExpireTime() || $course->getExpireTime() > new \DateTime()) {
+        // 检查课程是否无效
+        if ($course->isValid()) {
             return false;
         }
 
         // 检查是否有学习记录（这里需要根据实际的学习记录实体来实现）
-        // 暂时返回 true，实际使用时需要添加学习记录检查
+        // 暂时根据其他条件判断
         
         // 检查是否有收藏或评价
         if ($course->getCollects()->count() > 0 || $course->getEvaluates()->count() > 0) {
@@ -314,17 +310,4 @@ public function __construct(
         return true;
     }
 
-    /**
-     * 获取清理统计信息
-     */
-    private function getCleanupStatistics(): array
-    {
-        $cutoffDate = new \DateTime('-30 days');
-        
-        return [
-            'old_versions' => count($this->versionRepository->findOldVersions($cutoffDate)),
-            'old_audits' => count($this->auditRepository->findOldAudits($cutoffDate)),
-            'expired_courses' => count($this->courseRepository->findExpiredCourses()),
-        ];
-    }
 } 

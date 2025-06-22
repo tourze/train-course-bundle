@@ -10,7 +10,6 @@ use Tourze\TrainCourseBundle\Repository\LessonRepository;
 use Tourze\TrainCourseBundle\Service\CourseService;
 use WeuiBundle\Service\NoticeService;
 
-#[Route('/job-training/player')]
 class PlayerController extends AbstractController
 {
     public function __construct(
@@ -20,15 +19,15 @@ class PlayerController extends AbstractController
     ) {
     }
 
-    #[Route('/video', name: 'job-training-player-video')]
-    public function genChance(Request $request): Response
+    #[Route('/job-training/player/video', name: 'job-training-player-video')]
+    public function __invoke(Request $request): Response
     {
         $lesson = $this->lessonRepository->findOneBy([
             'id' => $request->query->get('lessonId'),
         ]);
-        if ((bool) $lesson) {
+        if (null !== $lesson) {
             $url = $this->courseService->getLessonPlayUrl($lesson);
-            if ((bool) empty($url)) {
+            if (empty($url)) {
                 return $this->noticeService->weuiError('找不到视频播放地址');
             }
 

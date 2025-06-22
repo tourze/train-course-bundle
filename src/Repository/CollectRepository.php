@@ -74,7 +74,7 @@ class CollectRepository extends ServiceEntityRepository
     public function isCollectedByUser(string $userId, Course $course): bool
     {
         $collect = $this->findByUserAndCourse($userId, $course);
-        return $collect && $collect->isActive();
+        return null !== $collect && $collect->isActive();
     }
 
     /**

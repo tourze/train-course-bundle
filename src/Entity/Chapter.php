@@ -10,17 +10,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Copyable;
-use Tourze\EasyAdmin\Attribute\Action\CurdAction;
-use Tourze\EasyAdmin\Attribute\Column\CopyColumn;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\ChapterRepository;
 use Tourze\TrainCourseBundle\Trait\SortableTrait;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 use Tourze\TrainCourseBundle\Trait\UniqueCodeAware;
 
-#[Copyable]
 #[ORM\Entity(repositoryClass: ChapterRepository::class)]
 #[ORM\Table(name: 'job_training_course_chapter', options: ['comment' => '课程章节'])]
 #[ORM\UniqueConstraint(name: 'job_training_course_chapter_idx_uniq', columns: ['course_id', 'title'])]
@@ -29,6 +24,7 @@ class Chapter implements \Stringable, ApiArrayInterface
     use UniqueCodeAware;
     use SortableTrait;
     use TimestampableTrait;
+    use BlameableAware;
 
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
@@ -37,28 +33,15 @@ class Chapter implements \Stringable, ApiArrayInterface
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[CreatedByColumn]
-    #[Groups(['restful_read'])]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[Groups(['restful_read'])]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
-
     #[Ignore]
-    #[CopyColumn]
     #[ORM\ManyToOne(inversedBy: 'chapters')]
     #[ORM\JoinColumn(nullable: false)]
     private Course $course;
 
-    #[CopyColumn(suffix: true)]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: false, options: ['comment' => '章节标题'])]
     private string $title;
 
     #[Ignore]
-    #[CurdAction(label: '课时', drawerWidth: 1200)]
     #[ORM\OneToMany(mappedBy: 'chapter', targetEntity: Lesson::class, orphanRemoval: true)]
     #[ORM\OrderBy(['sortNumber' => 'DESC', 'id' => 'ASC'])]
     private Collection $lessons;
@@ -70,7 +53,7 @@ class Chapter implements \Stringable, ApiArrayInterface
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if (null === $this->getId()) {
             return '';
         }
 
@@ -82,29 +65,6 @@ class Chapter implements \Stringable, ApiArrayInterface
         return $this->id;
     }
 
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
 
     public function getCourse(): Course
     {
@@ -150,12 +110,7 @@ class Chapter implements \Stringable, ApiArrayInterface
 
     public function removeLesson(Lesson $lesson): static
     {
-        if ($this->lessons->removeElement($lesson)) {
-            // set the owning side to null (unless already changed)
-            if ($lesson->getChapter() === $this) {
-                $lesson->setChapter(null);
-            }
-        }
+        $this->lessons->removeElement($lesson);
 
         return $this;
     }
@@ -165,7 +120,7 @@ class Chapter implements \Stringable, ApiArrayInterface
         // 这里只统计有效的
         $result = 0;
         foreach ($this->getLessons() as $lesson) {
-            if ($lesson->getVideoUrl()) {
+            if (null !== $lesson->getVideoUrl()) {
                 ++$result;
             }
         }
@@ -178,7 +133,7 @@ class Chapter implements \Stringable, ApiArrayInterface
         // 这里只统计有效的
         $result = 0;
         foreach ($this->getLessons() as $lesson) {
-            if ($lesson->getVideoUrl()) {
+            if (null !== $lesson->getVideoUrl()) {
                 $result += $lesson->getLessonTime();
             }
         }
@@ -191,7 +146,7 @@ class Chapter implements \Stringable, ApiArrayInterface
         // 这里只统计有效的
         $result = 0;
         foreach ($this->getLessons() as $lesson) {
-            if ($lesson->getVideoUrl()) {
+            if (null !== $lesson->getVideoUrl()) {
                 $result += $lesson->getDurationSecond();
             }
         }

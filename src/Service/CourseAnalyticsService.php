@@ -65,7 +65,7 @@ class CourseAnalyticsService
         return [
             'id' => $course->getId(),
             'title' => $course->getTitle(),
-            'category' => $course->getCategory()->getName(),
+            'category' => $course->getCategory()->getTitle(),
             'teacher_name' => $course->getTeacherName(),
             'price' => $course->getPrice(),
             'valid_day' => $course->getValidDay(),
@@ -265,10 +265,10 @@ class CourseAnalyticsService
         $maxScore = 100;
 
         // 基础信息 (30分)
-        if ($course->getTitle()) $score += 8;
-        if ($course->getDescription()) $score += 8;
-        if ($course->getCoverThumb()) $score += 7;
-        if ($course->getLearnHour()) $score += 7;
+        if ('' !== $course->getTitle()) $score += 8;
+        if (null !== $course->getDescription()) $score += 8;
+        if (null !== $course->getCoverThumb()) $score += 7;
+        if (null !== $course->getLearnHour()) $score += 7;
 
         // 内容结构 (40分)
         if ($course->getChapterCount() > 0) $score += 20;
@@ -276,8 +276,8 @@ class CourseAnalyticsService
 
         // 大纲和详情 (30分)
         if ($course->getOutlineCount() > 0) $score += 15;
-        if ($course->getTeacherName()) $score += 8;
-        if ($course->getPrice()) $score += 7;
+        if (null !== $course->getTeacherName()) $score += 8;
+        if (null !== $course->getPrice()) $score += 7;
 
         return [
             'score' => min($maxScore, $score),

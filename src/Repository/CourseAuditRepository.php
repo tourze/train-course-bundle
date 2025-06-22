@@ -182,7 +182,7 @@ class CourseAuditRepository extends ServiceEntityRepository
 
     /**
      * 查找超时的审核记录
-     * 
+     *
      * @param int $timeoutHours 超时小时数
      * @return CourseAudit[]
      */
@@ -203,7 +203,7 @@ class CourseAuditRepository extends ServiceEntityRepository
 
     /**
      * 查找旧的审核记录（超过指定天数）
-     * 
+     *
      * @param int $days 天数
      * @return CourseAudit[]
      */

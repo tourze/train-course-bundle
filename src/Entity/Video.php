@@ -8,8 +8,7 @@ use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\AliyunVodBundle\Entity\AliyunVodConfig;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\VideoRepository;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
@@ -24,6 +23,7 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 class Video implements Stringable
 {
     use TimestampableTrait;
+    use BlameableAware;
 
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
@@ -31,16 +31,6 @@ class Video implements Stringable
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
-
-    #[CreatedByColumn]
-    #[Groups(['restful_read'])]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[Groups(['restful_read'])]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
 
     private ?string $title = null;
 
@@ -67,29 +57,6 @@ class Video implements Stringable
         return $this->id;
     }
 
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
 
     public function getTitle(): ?string
     {

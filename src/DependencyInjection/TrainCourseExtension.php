@@ -16,13 +16,6 @@ class TrainCourseExtension extends Extension
 {
     public function load(array $configs, ContainerBuilder $container): void
     {
-        // 处理配置
-        $configuration = new Configuration();
-        $config = $this->processConfiguration($configuration, $configs);
-        
-        // 将配置设置为容器参数
-        $container->setParameter('train_course', $config);
-        
         // 加载服务配置
         $loader = new YamlFileLoader(
             $container,

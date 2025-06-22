@@ -142,7 +142,7 @@ class CourseConfigService
 
     /**
      * 获取配置值
-     * 
+     *
      * @param string $key 配置键，支持点号分隔的多级键
      * @param mixed $default 默认值
      * @return mixed

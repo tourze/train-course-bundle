@@ -74,7 +74,7 @@ class LessonTest extends TestCase
 
     public function test_chapter_property(): void
     {
-        /** @var Chapter|MockObject $chapter */
+        /** @var MockObject&Chapter $chapter */
         $chapter = $this->createMock(Chapter::class);
         
         $this->lesson->setChapter($chapter);
@@ -234,7 +234,7 @@ class LessonTest extends TestCase
 
     public function test_fluent_interface(): void
     {
-        /** @var Chapter|MockObject $chapter */
+        /** @var MockObject&Chapter $chapter */
         $chapter = $this->createMock(Chapter::class);
 
         $result = $this->lesson

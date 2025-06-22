@@ -37,7 +37,7 @@ class CoursePlayControlService
 
         $playControl = $this->playControlRepository->findByCourse($course);
         
-        if (!$playControl) {
+        if (null === $playControl) {
             // 使用默认配置
             $config = $this->getDefaultPlayControlConfig();
         } else {
@@ -59,7 +59,7 @@ class CoursePlayControlService
     {
         $playControl = $this->playControlRepository->findByCourse($course);
         
-        if (!$playControl) {
+        if (null === $playControl) {
             $playControl = new CoursePlayControl();
             $playControl->setCourse($course);
         }
@@ -193,7 +193,7 @@ class CoursePlayControlService
         try {
             $authData = json_decode(base64_decode($token), true);
             
-            if (!$authData || !isset($authData['expires_at'])) {
+            if (!is_array($authData) || !isset($authData['expires_at'])) {
                 throw new \InvalidArgumentException('Invalid play auth token');
             }
 

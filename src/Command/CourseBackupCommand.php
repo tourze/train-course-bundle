@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainCourseBundle\Command;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -10,7 +9,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Tourze\TrainCourseBundle\Repository\CourseRepository;
-use Tourze\TrainCourseBundle\Service\CourseConfigService;
 
 /**
  * 课程备份命令
@@ -25,9 +23,7 @@ class CourseBackupCommand extends Command
 {
     public const NAME = 'course:backup';
 public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly CourseRepository $courseRepository,
-        private readonly CourseConfigService $configService
+        private readonly CourseRepository $courseRepository
     ) {
         parent::__construct();
     }
