@@ -8,7 +8,7 @@ use Tourze\TrainCourseBundle\Entity\CourseOutline;
 
 /**
  * CourseOutline 实体测试
- * 
+ *
  * 测试课程大纲实体的基础属性、关联关系和业务方法
  */
 class CourseOutlineTest extends TestCase

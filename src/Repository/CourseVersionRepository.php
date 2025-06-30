@@ -9,7 +9,7 @@ use Tourze\TrainCourseBundle\Entity\CourseVersion;
 
 /**
  * 课程版本仓储
- * 
+ *
  * @method CourseVersion|null find($id, $lockMode = null, $lockVersion = null)
  * @method CourseVersion|null findOneBy(array $criteria, array $orderBy = null)
  * @method CourseVersion[]    findAll()

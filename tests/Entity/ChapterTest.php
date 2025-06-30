@@ -9,7 +9,7 @@ use Tourze\TrainCourseBundle\Entity\Lesson;
 
 /**
  * Chapter 实体测试
- * 
+ *
  * 测试章节实体的基础属性、关联关系和业务方法
  */
 class ChapterTest extends TestCase

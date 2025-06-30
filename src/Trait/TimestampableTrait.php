@@ -11,11 +11,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
  */
 trait TimestampableTrait
 {
-    #[Groups(['restful_read', 'admin_curd'])]
+    #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '创建时间'])]
     private ?\DateTimeInterface $createTime = null;
 
-    #[Groups(['restful_read', 'admin_curd'])]
+    #[Groups(groups: ['restful_read', 'admin_curd'])]
     private ?\DateTimeInterface $updateTime = null;
 
     public function getCreateTime(): ?\DateTimeInterface

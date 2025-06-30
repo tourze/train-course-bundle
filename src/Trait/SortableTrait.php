@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
  */
 trait SortableTrait
 {
-    #[Groups(['admin_curd', 'restful_read'])]
+    #[Groups(groups: ['admin_curd', 'restful_read'])]
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '排序号', 'default' => 0])]
     private int $sortNumber = 0;
 

@@ -9,7 +9,7 @@ use Tourze\TrainCourseBundle\Entity\Course;
 
 /**
  * 课程收藏仓储
- * 
+ *
  * @method Collect|null find($id, $lockMode = null, $lockVersion = null)
  * @method Collect|null findOneBy(array $criteria, array $orderBy = null)
  * @method Collect[]    findAll()

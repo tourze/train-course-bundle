@@ -9,7 +9,7 @@ use Tourze\TrainCourseBundle\Entity\CoursePlayControl;
 
 /**
  * 课程播放控制仓储
- * 
+ *
  * @method CoursePlayControl|null find($id, $lockMode = null, $lockVersion = null)
  * @method CoursePlayControl|null findOneBy(array $criteria, array $orderBy = null)
  * @method CoursePlayControl[]    findAll()

@@ -9,7 +9,7 @@ use Tourze\TrainCourseBundle\Service\CourseConfigService;
 
 /**
  * Bundle 集成测试
- * 
+ *
  * 测试Bundle的加载、服务注册和配置处理
  */
 class TrainCourseBundleIntegrationTest extends KernelTestCase

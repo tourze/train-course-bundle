@@ -5,16 +5,15 @@ namespace Tourze\TrainCourseBundle\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Stringable;
-use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\AliyunVodBundle\Entity\AliyunVodConfig;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\VideoRepository;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
 /**
  * 课程视频实体
- * 
+ *
  * 存储课程相关的视频信息，关联阿里云VOD服务
  * 通过 aliyun-vod-bundle 管理视频的上传、转码、播放等功能
  */
@@ -22,15 +21,10 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 #[ORM\Table(name: 'train_course_video', options: ['comment' => '课程视频'])]
 class Video implements Stringable
 {
+    use SnowflakeKeyAware;
     use TimestampableTrait;
     use BlameableAware;
 
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
 
     private ?string $title = null;
 
@@ -51,12 +45,6 @@ class Video implements Stringable
     #[ORM\ManyToOne(targetEntity: AliyunVodConfig::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL', options: ['comment' => '关联的阿里云VOD配置'])]
     private ?AliyunVodConfig $vodConfig = null;
-
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
-
 
     public function getTitle(): ?string
     {

@@ -17,7 +17,7 @@ use Tourze\TrainCourseBundle\Service\CourseConfigService;
 
 /**
  * 课程清理命令
- * 
+ *
  * 清理过期数据、缓存和临时文件，维护系统性能
  */
 #[AsCommand(

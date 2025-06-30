@@ -9,7 +9,7 @@ use Tourze\TrainCourseBundle\Entity\CourseOutline;
 
 /**
  * 课程大纲仓储
- * 
+ *
  * @method CourseOutline|null find($id, $lockMode = null, $lockVersion = null)
  * @method CourseOutline|null findOneBy(array $criteria, array $orderBy = null)
  * @method CourseOutline[]    findAll()
@@ -99,8 +99,8 @@ class CourseOutlineRepository extends ServiceEntityRepository
             'total_outlines' => $totalOutlines,
             'published_outlines' => $publishedOutlines,
             'draft_outlines' => $totalOutlines - $publishedOutlines,
-            'total_estimated_minutes' => $totalEstimatedMinutes ?: 0,
-            'total_estimated_hours' => round(($totalEstimatedMinutes ?: 0) / 60, 2),
+            'total_estimated_minutes' => $totalEstimatedMinutes ?? 0,
+            'total_estimated_hours' => round(($totalEstimatedMinutes ?? 0) / 60, 2),
         ];
     }
 

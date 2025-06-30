@@ -14,7 +14,7 @@ use Tourze\TrainCourseBundle\Repository\LessonRepository;
 
 /**
  * 课程内容服务
- * 
+ *
  * 管理课程内容的组织、检索和处理，包括章节、课时、大纲等
  */
 class CourseContentService

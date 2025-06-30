@@ -19,7 +19,7 @@ class PlayerController extends AbstractController
     ) {
     }
 
-    #[Route('/job-training/player/video', name: 'job-training-player-video')]
+    #[Route(path: '/job-training/player/video', name: 'job-training-player-video')]
     public function __invoke(Request $request): Response
     {
         $lesson = $this->lessonRepository->findOneBy([

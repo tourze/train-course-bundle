@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
  */
 trait UniqueCodeAware
 {
-    #[Groups(['admin_curd', 'restful_read'])]
+    #[Groups(groups: ['admin_curd', 'restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 64, nullable: true, options: ['comment' => '唯一代码'])]
     private ?string $uniqueCode = null;
 

@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCategoryBundle\Entity\Category;
@@ -24,20 +24,15 @@ use Tourze\TrainCourseBundle\Trait\UniqueCodeAware;
 #[ORM\Table(name: 'job_training_course', options: ['comment' => '课程信息'])]
 class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
 {
+    use SnowflakeKeyAware;
     use UniqueCodeAware;
     use SortableTrait;
     use TimestampableTrait;
     use BlameableAware;
 
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
 
     #[TrackColumn]
-    #[Groups(['admin_curd', 'restful_read', 'restful_read', 'restful_write'])]
+    #[Groups(groups: ['admin_curd', 'restful_read', 'restful_read', 'restful_write'])]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
     private ?bool $valid = false;
 
@@ -68,12 +63,12 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
 
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Chapter::class, orphanRemoval: true)]
-    #[ORM\OrderBy(['sortNumber' => 'DESC', 'id' => 'ASC'])]
+    #[ORM\OrderBy(value: ['sortNumber' => 'DESC', 'id' => 'ASC'])]
     private Collection $chapters;
 
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: CourseOutline::class, orphanRemoval: true)]
-    #[ORM\OrderBy(['sortNumber' => 'DESC', 'id' => 'ASC'])]
+    #[ORM\OrderBy(value: ['sortNumber' => 'DESC', 'id' => 'ASC'])]
     private Collection $outlines;
 
     #[Ignore]
@@ -82,7 +77,7 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
 
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Evaluate::class, orphanRemoval: true)]
-    #[ORM\OrderBy(['createTime' => 'DESC'])]
+    #[ORM\OrderBy(value: ['createTime' => 'DESC'])]
     private Collection $evaluates;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true, options: ['comment' => '支付价格'])]
@@ -107,11 +102,6 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
         }
 
         return $this->getTitle();
-    }
-
-    public function getId(): ?string
-    {
-        return $this->id;
     }
 
     public function setCreatedBy(?string $createdBy): self

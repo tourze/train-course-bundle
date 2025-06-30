@@ -8,7 +8,7 @@ use Tourze\TrainCourseBundle\Entity\CourseAudit;
 
 /**
  * CourseAudit 实体测试
- * 
+ *
  * 测试课程审核实体的基础属性、关联关系和业务方法
  */
 class CourseAuditTest extends TestCase

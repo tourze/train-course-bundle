@@ -9,7 +9,7 @@ use Tourze\TrainCourseBundle\Entity\CourseAudit;
 
 /**
  * 课程审核仓储
- * 
+ *
  * @method CourseAudit|null find($id, $lockMode = null, $lockVersion = null)
  * @method CourseAudit|null findOneBy(array $criteria, array $orderBy = null)
  * @method CourseAudit[]    findAll()

@@ -5,15 +5,14 @@ namespace Tourze\TrainCourseBundle\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Stringable;
-use Symfony\Component\Serializer\Attribute\Groups;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\CourseVersionRepository;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
 /**
  * 课程版本实体
- * 
+ *
  * 管理课程的版本控制，记录课程的历史变更和版本信息
  * 支持版本回滚和变更追踪
  */
@@ -21,15 +20,10 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 #[ORM\Table(name: 'train_course_version', options: ['comment' => '课程版本'])]
 class CourseVersion implements Stringable
 {
+    use SnowflakeKeyAware;
     use TimestampableTrait;
     use BlameableAware;
 
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
 
     #[ORM\ManyToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', options: ['comment' => '关联课程'])]
@@ -66,11 +60,6 @@ class CourseVersion implements Stringable
 
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '扩展属性'])]
     private ?array $metadata = null;
-
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getCourse(): ?Course
     {

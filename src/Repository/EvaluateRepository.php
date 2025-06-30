@@ -9,7 +9,7 @@ use Tourze\TrainCourseBundle\Entity\Evaluate;
 
 /**
  * 课程评价仓储
- * 
+ *
  * @method Evaluate|null find($id, $lockMode = null, $lockVersion = null)
  * @method Evaluate|null findOneBy(array $criteria, array $orderBy = null)
  * @method Evaluate[]    findAll()
@@ -126,7 +126,7 @@ class EvaluateRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        return round($result ?: 0, 2);
+        return round($result ?? 0, 2);
     }
 
     /**
@@ -164,7 +164,7 @@ class EvaluateRepository extends ServiceEntityRepository
 
         return [
             'total_evaluates' => $totalEvaluates,
-            'average_rating' => round($averageRating ?: 0, 2),
+            'average_rating' => round($averageRating ?? 0, 2),
             'rating_distribution' => $ratingStats,
         ];
     }

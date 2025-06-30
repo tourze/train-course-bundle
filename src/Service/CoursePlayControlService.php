@@ -6,11 +6,12 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\CoursePlayControl;
+use Tourze\TrainCourseBundle\Exception\InvalidPlayAuthTokenException;
 use Tourze\TrainCourseBundle\Repository\CoursePlayControlRepository;
 
 /**
  * 课程播放控制服务
- * 
+ *
  * 管理课程的播放控制策略，包括防快进、水印、设备限制等功能
  */
 class CoursePlayControlService
@@ -194,16 +195,16 @@ class CoursePlayControlService
             $authData = json_decode(base64_decode($token), true);
             
             if (!is_array($authData) || !isset($authData['expires_at'])) {
-                throw new \InvalidArgumentException('Invalid play auth token');
+                throw new InvalidPlayAuthTokenException('Invalid play auth token');
             }
 
             if ($authData['expires_at'] < time()) {
-                throw new \InvalidArgumentException('Play auth token expired');
+                throw new InvalidPlayAuthTokenException('Play auth token expired');
             }
 
             return $authData;
         } catch (\Throwable $e) {
-            throw new \InvalidArgumentException('Invalid play auth token: ' . $e->getMessage());
+            throw new InvalidPlayAuthTokenException('Invalid play auth token: ' . $e->getMessage());
         }
     }
 

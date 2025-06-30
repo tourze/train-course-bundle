@@ -12,7 +12,7 @@ use Tourze\TrainCourseBundle\Repository\CourseRepository;
 
 /**
  * 课程备份命令
- * 
+ *
  * 用于备份课程数据，支持全量备份和增量备份
  */
 #[AsCommand(

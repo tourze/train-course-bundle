@@ -9,7 +9,7 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 /**
  * 培训课程Bundle扩展类
- * 
+ *
  * 负责加载Bundle配置和服务定义
  */
 class TrainCourseExtension extends Extension

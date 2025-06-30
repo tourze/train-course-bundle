@@ -5,15 +5,14 @@ namespace Tourze\TrainCourseBundle\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Stringable;
-use Symfony\Component\Serializer\Attribute\Groups;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\CourseOutlineRepository;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
 /**
  * 课程大纲实体
- * 
+ *
  * 存储课程的详细大纲信息，包括学习目标、内容要点、考核标准等
  * 支持结构化的课程内容组织和管理
  */
@@ -21,15 +20,10 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 #[ORM\Table(name: 'train_course_outline', options: ['comment' => '课程大纲'])]
 class CourseOutline implements Stringable
 {
+    use SnowflakeKeyAware;
     use TimestampableTrait;
     use BlameableAware;
 
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
 
     #[ORM\ManyToOne(targetEntity: Course::class, inversedBy: 'outlines')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', options: ['comment' => '关联课程'])]
@@ -60,11 +54,6 @@ class CourseOutline implements Stringable
 
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '扩展属性'])]
     private ?array $metadata = null;
-
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getCourse(): ?Course
     {

@@ -12,7 +12,7 @@ use Tourze\TrainCourseBundle\Repository\EvaluateRepository;
 
 /**
  * 课程分析服务
- * 
+ *
  * 提供课程数据分析和统计功能，包括学习统计、评价分析、收藏趋势等
  */
 class CourseAnalyticsService

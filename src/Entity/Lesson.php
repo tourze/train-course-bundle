@@ -3,12 +3,11 @@
 namespace Tourze\TrainCourseBundle\Entity;
 
 use Carbon\CarbonImmutable;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\LessonRepository;
 use Tourze\TrainCourseBundle\Trait\SortableTrait;
@@ -21,17 +20,12 @@ use Tourze\TrainCourseBundle\Trait\UniqueCodeAware;
 #[ORM\UniqueConstraint(name: 'job_training_course_lesson_idx_uniq', columns: ['chapter_id', 'title'])]
 class Lesson implements \Stringable, ApiArrayInterface, AdminArrayInterface
 {
+    use SnowflakeKeyAware;
     use UniqueCodeAware;
     use SortableTrait;
     use TimestampableTrait;
     use BlameableAware;
 
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'lessons')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -40,7 +34,7 @@ class Lesson implements \Stringable, ApiArrayInterface, AdminArrayInterface
     #[ORM\Column(length: 120, options: ['comment' => '课时名称'])]
     private string $title;
 
-    #[Groups(['admin_curd'])]
+    #[Groups(groups: ['admin_curd'])]
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '课时封面'])]
     private ?string $coverThumb = null;
 
@@ -61,12 +55,6 @@ class Lesson implements \Stringable, ApiArrayInterface, AdminArrayInterface
 
         return $this->getTitle();
     }
-
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
-
 
     public function getChapter(): Chapter
     {

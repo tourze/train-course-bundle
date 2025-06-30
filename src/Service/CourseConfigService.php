@@ -6,7 +6,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 /**
  * 课程配置服务
- * 
+ *
  * 统一管理课程相关的配置参数，避免硬编码
  */
 class CourseConfigService

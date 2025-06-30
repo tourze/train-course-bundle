@@ -6,10 +6,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\ApiArrayInterface;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\ChapterRepository;
 use Tourze\TrainCourseBundle\Trait\SortableTrait;
@@ -21,17 +20,12 @@ use Tourze\TrainCourseBundle\Trait\UniqueCodeAware;
 #[ORM\UniqueConstraint(name: 'job_training_course_chapter_idx_uniq', columns: ['course_id', 'title'])]
 class Chapter implements \Stringable, ApiArrayInterface
 {
+    use SnowflakeKeyAware;
     use UniqueCodeAware;
     use SortableTrait;
     use TimestampableTrait;
     use BlameableAware;
 
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
 
     #[Ignore]
     #[ORM\ManyToOne(inversedBy: 'chapters')]
@@ -43,7 +37,7 @@ class Chapter implements \Stringable, ApiArrayInterface
 
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'chapter', targetEntity: Lesson::class, orphanRemoval: true)]
-    #[ORM\OrderBy(['sortNumber' => 'DESC', 'id' => 'ASC'])]
+    #[ORM\OrderBy(value: ['sortNumber' => 'DESC', 'id' => 'ASC'])]
     private Collection $lessons;
 
     public function __construct()
@@ -58,11 +52,6 @@ class Chapter implements \Stringable, ApiArrayInterface
         }
 
         return $this->getTitle();
-    }
-
-    public function getId(): ?string
-    {
-        return $this->id;
     }
 
 

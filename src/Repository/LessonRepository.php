@@ -10,7 +10,7 @@ use Tourze\TrainCourseBundle\Entity\Lesson;
 
 /**
  * 课时仓储
- * 
+ *
  * @method Lesson|null find($id, $lockMode = null, $lockVersion = null)
  * @method Lesson|null findOneBy(array $criteria, array $orderBy = null)
  * @method Lesson[]    findAll()
@@ -99,8 +99,8 @@ class LessonRepository extends ServiceEntityRepository
             'total_lessons' => $totalLessons,
             'lessons_with_video' => $lessonsWithVideo,
             'lessons_without_video' => $totalLessons - $lessonsWithVideo,
-            'total_duration_seconds' => $totalDuration ?: 0,
-            'total_duration_hours' => round(($totalDuration ?: 0) / 3600, 2),
+            'total_duration_seconds' => $totalDuration ?? 0,
+            'total_duration_hours' => round(($totalDuration ?? 0) / 3600, 2),
         ];
     }
 

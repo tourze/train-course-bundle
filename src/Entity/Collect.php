@@ -5,15 +5,14 @@ namespace Tourze\TrainCourseBundle\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Stringable;
-use Symfony\Component\Serializer\Attribute\Groups;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\CollectRepository;
 use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
 /**
  * 课程收藏实体
- * 
+ *
  * 管理用户对课程的收藏功能，支持收藏分组和备注
  * 一个用户对同一课程只能收藏一次
  */
@@ -22,15 +21,10 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 #[ORM\UniqueConstraint(name: 'unique_user_course', columns: ['user_id', 'course_id'])]
 class Collect implements Stringable
 {
+    use SnowflakeKeyAware;
     use TimestampableTrait;
     use BlameableAware;
 
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
 
     #[ORM\Column(type: Types::STRING, nullable: false, options: ['comment' => '用户ID'])]
     private ?string $userId = null;
@@ -56,11 +50,6 @@ class Collect implements Stringable
 
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '扩展属性'])]
     private ?array $metadata = null;
-
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function setCreatedBy(?string $createdBy): self
     {

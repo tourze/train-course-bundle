@@ -9,7 +9,7 @@ use Tourze\TrainCourseBundle\Entity\Course;
 
 /**
  * 章节仓储
- * 
+ *
  * @method Chapter|null find($id, $lockMode = null, $lockVersion = null)
  * @method Chapter|null findOneBy(array $criteria, array $orderBy = null)
  * @method Chapter[]    findAll()
@@ -79,8 +79,8 @@ class ChapterRepository extends ServiceEntityRepository
         return [
             'total_chapters' => $totalChapters,
             'total_lessons' => $totalLessons,
-            'total_duration_seconds' => $totalDuration ?: 0,
-            'total_duration_hours' => round(($totalDuration ?: 0) / 3600, 2),
+            'total_duration_seconds' => $totalDuration ?? 0,
+            'total_duration_hours' => round(($totalDuration ?? 0) / 3600, 2),
         ];
     }
 
