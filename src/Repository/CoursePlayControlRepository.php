@@ -4,17 +4,16 @@ namespace Tourze\TrainCourseBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\CoursePlayControl;
 
 /**
  * 课程播放控制仓储
  *
- * @method CoursePlayControl|null find($id, $lockMode = null, $lockVersion = null)
- * @method CoursePlayControl|null findOneBy(array $criteria, array $orderBy = null)
- * @method CoursePlayControl[]    findAll()
- * @method CoursePlayControl[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @extends ServiceEntityRepository<CoursePlayControl>
  */
+#[AsRepository(entityClass: CoursePlayControl::class)]
 class CoursePlayControlRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -27,58 +26,86 @@ class CoursePlayControlRepository extends ServiceEntityRepository
      */
     public function findByCourse(Course $course): ?CoursePlayControl
     {
-        return $this->createQueryBuilder('cpc')
+        $result = $this->createQueryBuilder('cpc')
             ->where('cpc.course = :course')
             ->setParameter('course', $course)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
+
+        assert($result instanceof CoursePlayControl || null === $result);
+
+        return $result;
     }
 
     /**
      * 查找启用播放控制的课程
+     *
+     * @return CoursePlayControl[]
+     * @phpstan-return list<CoursePlayControl>
      */
     public function findEnabledControls(): array
     {
+        /** @var list<CoursePlayControl> */
+
         return $this->createQueryBuilder('cpc')
             ->where('cpc.enabled = :enabled')
             ->setParameter('enabled', true)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 查找禁用快进的课程
+     *
+     * @return CoursePlayControl[]
+     * @phpstan-return list<CoursePlayControl>
      */
     public function findWithFastForwardDisabled(): array
     {
+        /** @var list<CoursePlayControl> */
+
         return $this->createQueryBuilder('cpc')
             ->where('cpc.enabled = :enabled')
             ->andWhere('cpc.allowFastForward = :allowFastForward')
             ->setParameter('enabled', true)
             ->setParameter('allowFastForward', false)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 查找启用水印的课程
+     *
+     * @return CoursePlayControl[]
+     * @phpstan-return list<CoursePlayControl>
      */
     public function findWithWatermarkEnabled(): array
     {
+        /** @var list<CoursePlayControl> */
+
         return $this->createQueryBuilder('cpc')
             ->where('cpc.enabled = :enabled')
             ->andWhere('cpc.enableWatermark = :enableWatermark')
             ->setParameter('enabled', true)
             ->setParameter('enableWatermark', true)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 查找严格模式的课程（禁用快进和拖拽）
+     *
+     * @return CoursePlayControl[]
+     * @phpstan-return list<CoursePlayControl>
      */
     public function findStrictModeControls(): array
     {
+        /** @var list<CoursePlayControl> */
+
         return $this->createQueryBuilder('cpc')
             ->where('cpc.enabled = :enabled')
             ->andWhere('cpc.allowFastForward = :allowFastForward')
@@ -87,59 +114,72 @@ class CoursePlayControlRepository extends ServiceEntityRepository
             ->setParameter('allowFastForward', false)
             ->setParameter('allowSeeking', false)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 根据设备数量限制查找
+     *
+     * @return CoursePlayControl[]
+     * @phpstan-return list<CoursePlayControl>
      */
     public function findByMaxDeviceCount(int $maxDeviceCount): array
     {
+        /** @var list<CoursePlayControl> */
+
         return $this->createQueryBuilder('cpc')
             ->where('cpc.enabled = :enabled')
             ->andWhere('cpc.maxDeviceCount = :maxDeviceCount')
             ->setParameter('enabled', true)
             ->setParameter('maxDeviceCount', $maxDeviceCount)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 获取播放控制统计信息
+     *
+     * @return array{total_controls: int, enabled_controls: int, disabled_controls: int, fast_forward_disabled: int, watermark_enabled: int, strict_mode_count: int}
      */
     public function getPlayControlStatistics(): array
     {
-        $totalControls = $this->createQueryBuilder('cpc')
+        $totalControls = (int) $this->createQueryBuilder('cpc')
             ->select('COUNT(cpc.id)')
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
-        $enabledControls = $this->createQueryBuilder('cpc')
+        $enabledControls = (int) $this->createQueryBuilder('cpc')
             ->select('COUNT(cpc.id)')
             ->where('cpc.enabled = :enabled')
             ->setParameter('enabled', true)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
-        $fastForwardDisabled = $this->createQueryBuilder('cpc')
+        $fastForwardDisabled = (int) $this->createQueryBuilder('cpc')
             ->select('COUNT(cpc.id)')
             ->where('cpc.enabled = :enabled')
             ->andWhere('cpc.allowFastForward = :allowFastForward')
             ->setParameter('enabled', true)
             ->setParameter('allowFastForward', false)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
-        $watermarkEnabled = $this->createQueryBuilder('cpc')
+        $watermarkEnabled = (int) $this->createQueryBuilder('cpc')
             ->select('COUNT(cpc.id)')
             ->where('cpc.enabled = :enabled')
             ->andWhere('cpc.enableWatermark = :enableWatermark')
             ->setParameter('enabled', true)
             ->setParameter('enableWatermark', true)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
-        $strictModeCount = $this->createQueryBuilder('cpc')
+        $strictModeCount = (int) $this->createQueryBuilder('cpc')
             ->select('COUNT(cpc.id)')
             ->where('cpc.enabled = :enabled')
             ->andWhere('cpc.allowFastForward = :allowFastForward')
@@ -148,7 +188,8 @@ class CoursePlayControlRepository extends ServiceEntityRepository
             ->setParameter('allowFastForward', false)
             ->setParameter('allowSeeking', false)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
         return [
             'total_controls' => $totalControls,
@@ -162,15 +203,39 @@ class CoursePlayControlRepository extends ServiceEntityRepository
 
     /**
      * 查找需要更新播放凭证的课程
+     *
+     * @return CoursePlayControl[]
+     * @phpstan-return list<CoursePlayControl>
      */
     public function findNeedingAuthUpdate(int $thresholdSeconds = 1800): array
     {
+        /** @var list<CoursePlayControl> */
+
         return $this->createQueryBuilder('cpc')
             ->where('cpc.enabled = :enabled')
             ->andWhere('cpc.playAuthDuration < :threshold')
             ->setParameter('enabled', true)
             ->setParameter('threshold', $thresholdSeconds)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
-} 
+
+    public function save(CoursePlayControl $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(CoursePlayControl $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+}

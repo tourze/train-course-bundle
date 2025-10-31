@@ -20,11 +20,9 @@ trait UniqueCodeAware
         return $this->uniqueCode;
     }
 
-    public function setUniqueCode(?string $uniqueCode): self
+    public function setUniqueCode(?string $uniqueCode): void
     {
         $this->uniqueCode = $uniqueCode;
-
-        return $this;
     }
 
     public function generateUniqueCode(): string
@@ -35,4 +33,4 @@ trait UniqueCodeAware
 
         return $this->uniqueCode;
     }
-} 
+}

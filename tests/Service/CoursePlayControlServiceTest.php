@@ -1,89 +1,97 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainCourseBundle\Tests\Service;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Tourze\TrainCourseBundle\Service\CoursePlayControlService;
 
 /**
- * CoursePlayControlService 单元测试
+ * CoursePlayControlService 集成测试
+ *
+ * @internal
  */
-class CoursePlayControlServiceTest extends TestCase
+#[CoversClass(CoursePlayControlService::class)]
+final class CoursePlayControlServiceTest extends TestCase
 {
     protected function setUp(): void
     {
-        // Service 测试主要验证方法存在性
+        parent::setUp();
+
+        // 单元测试设置
     }
 
-    public function test_serviceExists(): void
+    public function testServiceExists(): void
     {
         $reflection = new \ReflectionClass(CoursePlayControlService::class);
         $this->assertTrue($reflection->isInstantiable());
     }
 
-    public function test_getPlayControlConfigMethod_exists(): void
+    public function testGetPlayControlConfigMethodExists(): void
     {
         $reflection = new \ReflectionClass(CoursePlayControlService::class);
         $this->assertTrue($reflection->hasMethod('getPlayControlConfig'));
     }
 
-    public function test_createOrUpdatePlayControlMethod_exists(): void
+    public function testCreateOrUpdatePlayControlMethodExists(): void
     {
         $reflection = new \ReflectionClass(CoursePlayControlService::class);
         $this->assertTrue($reflection->hasMethod('createOrUpdatePlayControl'));
     }
 
-    public function test_enableStrictModeMethod_exists(): void
+    public function testEnableStrictModeMethodExists(): void
     {
         $reflection = new \ReflectionClass(CoursePlayControlService::class);
         $this->assertTrue($reflection->hasMethod('enableStrictMode'));
     }
 
-    public function test_canFastForwardMethod_exists(): void
+    public function testCanFastForwardMethodExists(): void
     {
         $reflection = new \ReflectionClass(CoursePlayControlService::class);
         $this->assertTrue($reflection->hasMethod('canFastForward'));
     }
 
-    public function test_canControlSpeedMethod_exists(): void
+    public function testCanControlSpeedMethodExists(): void
     {
         $reflection = new \ReflectionClass(CoursePlayControlService::class);
         $this->assertTrue($reflection->hasMethod('canControlSpeed'));
     }
 
-    public function test_getAllowedSpeedsMethod_exists(): void
+    public function testGetAllowedSpeedsMethodExists(): void
     {
         $reflection = new \ReflectionClass(CoursePlayControlService::class);
         $this->assertTrue($reflection->hasMethod('getAllowedSpeeds'));
     }
 
-    public function test_getWatermarkConfigMethod_exists(): void
+    public function testGetWatermarkConfigMethodExists(): void
     {
         $reflection = new \ReflectionClass(CoursePlayControlService::class);
         $this->assertTrue($reflection->hasMethod('getWatermarkConfig'));
     }
 
-    public function test_isStrictModeMethod_exists(): void
+    public function testIsStrictModeMethodExists(): void
     {
         $reflection = new \ReflectionClass(CoursePlayControlService::class);
         $this->assertTrue($reflection->hasMethod('isStrictMode'));
     }
 
-    public function test_generatePlayAuthMethod_exists(): void
+    public function testGeneratePlayAuthMethodExists(): void
     {
         $reflection = new \ReflectionClass(CoursePlayControlService::class);
         $this->assertTrue($reflection->hasMethod('generatePlayAuth'));
     }
 
-    public function test_validatePlayAuthMethod_exists(): void
+    public function testValidatePlayAuthMethodExists(): void
     {
         $reflection = new \ReflectionClass(CoursePlayControlService::class);
         $this->assertTrue($reflection->hasMethod('validatePlayAuth'));
     }
 
-    public function test_getPlayControlStatisticsMethod_exists(): void
+    public function testGetPlayControlStatisticsMethodExists(): void
     {
         $reflection = new \ReflectionClass(CoursePlayControlService::class);
         $this->assertTrue($reflection->hasMethod('getPlayControlStatistics'));
     }
-} 
+}

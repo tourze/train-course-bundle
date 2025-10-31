@@ -4,11 +4,11 @@ namespace Tourze\TrainCourseBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Stringable;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\EvaluateRepository;
-use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
 /**
  * 课程评价实体
@@ -19,14 +19,15 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 #[ORM\Entity(repositoryClass: EvaluateRepository::class)]
 #[ORM\Table(name: 'train_course_evaluate', options: ['comment' => '课程评价'])]
 #[ORM\UniqueConstraint(name: 'unique_user_course_evaluate', columns: ['user_id', 'course_id'])]
-class Evaluate implements Stringable
+class Evaluate implements \Stringable
 {
     use SnowflakeKeyAware;
-    use TimestampableTrait;
+    use TimestampableAware;
     use BlameableAware;
 
-
-    #[ORM\Column(type: Types::STRING, nullable: false, options: ['comment' => '用户ID'])]
+    #[ORM\Column(type: Types::STRING, length: 100, nullable: false, options: ['comment' => '用户ID'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 100)]
     private ?string $userId = null;
 
     #[ORM\ManyToOne(targetEntity: Course::class)]
@@ -34,39 +35,55 @@ class Evaluate implements Stringable
     private ?Course $course = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '评分(1-5星)', 'default' => 5])]
+    #[Assert\Range(min: 1, max: 5)]
     private int $rating = 5;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '评价内容'])]
+    #[Assert\Length(max: 65535)]
     private ?string $content = null;
 
     #[ORM\Column(type: Types::STRING, length: 20, nullable: false, options: ['comment' => '评价状态', 'default' => 'published'])]
+    #[Assert\Length(max: 20)]
+    #[Assert\Choice(choices: ['published', 'pending', 'rejected', 'hidden'])]
     private string $status = 'published';
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否匿名', 'default' => false])]
+    #[Assert\NotNull]
     private bool $isAnonymous = false;
 
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '点赞数', 'default' => 0])]
+    #[Assert\PositiveOrZero]
     private int $likeCount = 0;
 
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '回复数', 'default' => 0])]
+    #[Assert\PositiveOrZero]
     private int $replyCount = 0;
 
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '用户昵称'])]
+    #[Assert\Length(max: 100)]
     private ?string $userNickname = null;
 
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '用户头像'])]
+    #[Assert\Length(max: 255)]
     private ?string $userAvatar = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '审核时间'])]
+    #[Assert\Type(type: '\DateTimeInterface')]
     private ?\DateTimeInterface $auditTime = null;
 
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '审核人员'])]
+    #[Assert\Length(max: 100)]
     private ?string $auditor = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '审核意见'])]
+    #[Assert\Length(max: 65535)]
     private ?string $auditComment = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '扩展属性'])]
+    #[Assert\Type(type: 'array')]
     private ?array $metadata = null;
 
     public function getUserId(): ?string
@@ -74,10 +91,9 @@ class Evaluate implements Stringable
         return $this->userId;
     }
 
-    public function setUserId(string $userId): static
+    public function setUserId(string $userId): void
     {
         $this->userId = $userId;
-        return $this;
     }
 
     public function getCourse(): ?Course
@@ -85,10 +101,9 @@ class Evaluate implements Stringable
         return $this->course;
     }
 
-    public function setCourse(?Course $course): static
+    public function setCourse(?Course $course): void
     {
         $this->course = $course;
-        return $this;
     }
 
     public function getRating(): int
@@ -96,11 +111,10 @@ class Evaluate implements Stringable
         return $this->rating;
     }
 
-    public function setRating(int $rating): static
+    public function setRating(int $rating): void
     {
         // 确保评分在1-5之间
         $this->rating = max(1, min(5, $rating));
-        return $this;
     }
 
     public function getContent(): ?string
@@ -108,10 +122,9 @@ class Evaluate implements Stringable
         return $this->content;
     }
 
-    public function setContent(?string $content): static
+    public function setContent(?string $content): void
     {
         $this->content = $content;
-        return $this;
     }
 
     public function getStatus(): string
@@ -119,10 +132,9 @@ class Evaluate implements Stringable
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(string $status): void
     {
         $this->status = $status;
-        return $this;
     }
 
     public function isIsAnonymous(): bool
@@ -130,10 +142,9 @@ class Evaluate implements Stringable
         return $this->isAnonymous;
     }
 
-    public function setIsAnonymous(bool $isAnonymous): static
+    public function setIsAnonymous(bool $isAnonymous): void
     {
         $this->isAnonymous = $isAnonymous;
-        return $this;
     }
 
     public function getLikeCount(): int
@@ -141,10 +152,9 @@ class Evaluate implements Stringable
         return $this->likeCount;
     }
 
-    public function setLikeCount(int $likeCount): static
+    public function setLikeCount(int $likeCount): void
     {
         $this->likeCount = max(0, $likeCount);
-        return $this;
     }
 
     public function getReplyCount(): int
@@ -152,10 +162,9 @@ class Evaluate implements Stringable
         return $this->replyCount;
     }
 
-    public function setReplyCount(int $replyCount): static
+    public function setReplyCount(int $replyCount): void
     {
         $this->replyCount = max(0, $replyCount);
-        return $this;
     }
 
     public function getUserNickname(): ?string
@@ -163,10 +172,9 @@ class Evaluate implements Stringable
         return $this->userNickname;
     }
 
-    public function setUserNickname(?string $userNickname): static
+    public function setUserNickname(?string $userNickname): void
     {
         $this->userNickname = $userNickname;
-        return $this;
     }
 
     public function getUserAvatar(): ?string
@@ -174,10 +182,9 @@ class Evaluate implements Stringable
         return $this->userAvatar;
     }
 
-    public function setUserAvatar(?string $userAvatar): static
+    public function setUserAvatar(?string $userAvatar): void
     {
         $this->userAvatar = $userAvatar;
-        return $this;
     }
 
     public function getAuditTime(): ?\DateTimeInterface
@@ -185,10 +192,9 @@ class Evaluate implements Stringable
         return $this->auditTime;
     }
 
-    public function setAuditTime(?\DateTimeInterface $auditTime): static
+    public function setAuditTime(?\DateTimeInterface $auditTime): void
     {
         $this->auditTime = $auditTime;
-        return $this;
     }
 
     public function getAuditor(): ?string
@@ -196,10 +202,9 @@ class Evaluate implements Stringable
         return $this->auditor;
     }
 
-    public function setAuditor(?string $auditor): static
+    public function setAuditor(?string $auditor): void
     {
         $this->auditor = $auditor;
-        return $this;
     }
 
     public function getAuditComment(): ?string
@@ -207,21 +212,21 @@ class Evaluate implements Stringable
         return $this->auditComment;
     }
 
-    public function setAuditComment(?string $auditComment): static
+    public function setAuditComment(?string $auditComment): void
     {
         $this->auditComment = $auditComment;
-        return $this;
     }
 
+    /** @return array<string, mixed>|null */
     public function getMetadata(): ?array
     {
         return $this->metadata;
     }
 
-    public function setMetadata(?array $metadata): static
+    /** @param array<string, mixed>|null $metadata */
+    public function setMetadata(?array $metadata): void
     {
         $this->metadata = $metadata;
-        return $this;
     }
 
     /**
@@ -229,7 +234,7 @@ class Evaluate implements Stringable
      */
     public function isPublished(): bool
     {
-        return $this->status === 'published';
+        return 'published' === $this->status;
     }
 
     /**
@@ -237,7 +242,7 @@ class Evaluate implements Stringable
      */
     public function isPending(): bool
     {
-        return $this->status === 'pending';
+        return 'pending' === $this->status;
     }
 
     /**
@@ -245,7 +250,7 @@ class Evaluate implements Stringable
      */
     public function isRejected(): bool
     {
-        return $this->status === 'rejected';
+        return 'rejected' === $this->status;
     }
 
     /**
@@ -280,37 +285,33 @@ class Evaluate implements Stringable
     /**
      * 增加点赞数
      */
-    public function incrementLikeCount(): static
+    public function incrementLikeCount(): void
     {
-        $this->likeCount++;
-        return $this;
+        ++$this->likeCount;
     }
 
     /**
      * 减少点赞数
      */
-    public function decrementLikeCount(): static
+    public function decrementLikeCount(): void
     {
         $this->likeCount = max(0, $this->likeCount - 1);
-        return $this;
     }
 
     /**
      * 增加回复数
      */
-    public function incrementReplyCount(): static
+    public function incrementReplyCount(): void
     {
-        $this->replyCount++;
-        return $this;
+        ++$this->replyCount;
     }
 
     /**
      * 减少回复数
      */
-    public function decrementReplyCount(): static
+    public function decrementReplyCount(): void
     {
         $this->replyCount = max(0, $this->replyCount - 1);
-        return $this;
     }
 
     /**
@@ -321,12 +322,12 @@ class Evaluate implements Stringable
         if ($this->isAnonymous) {
             return '匿名用户';
         }
-        
-        return $this->userNickname ?? '用户' . substr($this->userId, -4);
+
+        return $this->userNickname ?? '用户' . substr($this->userId ?? '', -4);
     }
 
     public function __toString(): string
     {
         return (string) $this->id;
     }
-} 
+}

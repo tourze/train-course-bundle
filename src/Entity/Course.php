@@ -9,17 +9,22 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
+use Tourze\CatalogBundle\Entity\Catalog;
+use Tourze\DoctrineHelper\SortableTrait;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
-use Tourze\TrainCategoryBundle\Entity\Category;
 use Tourze\TrainCourseBundle\Repository\CourseRepository;
-use Tourze\TrainCourseBundle\Trait\SortableTrait;
-use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 use Tourze\TrainCourseBundle\Trait\UniqueCodeAware;
 
+/**
+ * @implements ApiArrayInterface<string, mixed>
+ * @implements AdminArrayInterface<string, mixed>
+ */
 #[ORM\Entity(repositoryClass: CourseRepository::class)]
 #[ORM\Table(name: 'job_training_course', options: ['comment' => '课程信息'])]
 class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
@@ -27,65 +32,83 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
     use SnowflakeKeyAware;
     use UniqueCodeAware;
     use SortableTrait;
-    use TimestampableTrait;
+    use TimestampableAware;
     use BlameableAware;
-
 
     #[TrackColumn]
     #[Groups(groups: ['admin_curd', 'restful_read', 'restful_read', 'restful_write'])]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
+    #[Assert\Type(type: 'bool', message: '有效状态必须是布尔值')]
     private ?bool $valid = false;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    private Category $category;
+    private Catalog $category;
 
     #[ORM\Column(length: 120, options: ['comment' => '课程名称'])]
+    #[Assert\NotBlank(message: '课程名称不能为空')]
+    #[Assert\Length(max: 120, maxMessage: '课程名称长度不能超过 {{ limit }} 个字符')]
     private string $title;
 
     //    //    #[ORM\ManyToOne]
+    #[Assert\Valid]
     private ?UserInterface $instructor = null;
 
     #[ORM\Column(options: ['comment' => '有效期'])]
+    #[Assert\Positive(message: '有效期必须是正数')]
     private int $validDay = 365;
 
     #[ORM\Column(options: ['comment' => '毕业学时'])]
+    #[Assert\PositiveOrZero(message: '毕业学时必须大于或等于0')]
     private ?int $learnHour = null;
 
     #[ORM\Column(length: 30, nullable: true, options: ['comment' => '任课老师'])]
+    #[Assert\Length(max: 30, maxMessage: '任课老师姓名长度不能超过 {{ limit }} 个字符')]
     private ?string $teacherName = null;
 
     #[ORM\Column(length: 255, nullable: true, options: ['comment' => '课程封面'])]
+    #[Assert\Length(max: 255, maxMessage: '课程封面URL长度不能超过 {{ limit }} 个字符')]
+    #[Assert\Url(message: '课程封面必须是有效的URL地址')]
     private ?string $coverThumb = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '课程详情'])]
+    #[Assert\Length(max: 65535, maxMessage: '课程详情长度不能超过 {{ limit }} 个字符')]
     private ?string $description = null;
 
+    /**
+     * @var Collection<int, Chapter>
+     */
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Chapter::class, orphanRemoval: true)]
     #[ORM\OrderBy(value: ['sortNumber' => 'DESC', 'id' => 'ASC'])]
     private Collection $chapters;
 
+    /**
+     * @var Collection<int, CourseOutline>
+     */
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: CourseOutline::class, orphanRemoval: true)]
     #[ORM\OrderBy(value: ['sortNumber' => 'DESC', 'id' => 'ASC'])]
     private Collection $outlines;
 
+    /**
+     * @var Collection<int, Collect>
+     */
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Collect::class, orphanRemoval: true)]
     private Collection $collects;
 
+    /**
+     * @var Collection<int, Evaluate>
+     */
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Evaluate::class, orphanRemoval: true)]
     #[ORM\OrderBy(value: ['createTime' => 'DESC'])]
     private Collection $evaluates;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true, options: ['comment' => '支付价格'])]
+    #[Assert\PositiveOrZero(message: '支付价格必须大于或等于0')]
     private ?string $price = '20.00';
-
-
-
-
 
     public function __construct()
     {
@@ -104,52 +127,24 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
         return $this->getTitle();
     }
 
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
-
     public function isValid(): ?bool
     {
         return $this->valid;
     }
 
-    public function setValid(?bool $valid): self
+    public function setValid(?bool $valid): void
     {
         $this->valid = $valid;
-
-        return $this;
     }
 
-    public function getCategory(): Category
+    public function getCategory(): Catalog
     {
         return $this->category;
     }
 
-    public function setCategory(Category $category): static
+    public function setCategory(Catalog $category): void
     {
         $this->category = $category;
-
-        return $this;
     }
 
     public function getTitle(): string
@@ -157,11 +152,9 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
         return $this->title;
     }
 
-    public function setTitle(string $title): static
+    public function setTitle(string $title): void
     {
         $this->title = $title;
-
-        return $this;
     }
 
     public function getInstructor(): ?UserInterface
@@ -169,11 +162,9 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
         return $this->instructor;
     }
 
-    public function setInstructor(?UserInterface $instructor): static
+    public function setInstructor(?UserInterface $instructor): void
     {
         $this->instructor = $instructor;
-
-        return $this;
     }
 
     public function getValidDay(): int
@@ -181,11 +172,9 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
         return $this->validDay;
     }
 
-    public function setValidDay(int $validDay): static
+    public function setValidDay(int $validDay): void
     {
         $this->validDay = $validDay;
-
-        return $this;
     }
 
     public function getLearnHour(): ?int
@@ -193,11 +182,9 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
         return $this->learnHour;
     }
 
-    public function setLearnHour(int $learnHour): static
+    public function setLearnHour(int $learnHour): void
     {
         $this->learnHour = $learnHour;
-
-        return $this;
     }
 
     public function getCoverThumb(): ?string
@@ -205,11 +192,9 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
         return $this->coverThumb;
     }
 
-    public function setCoverThumb(?string $coverThumb): static
+    public function setCoverThumb(?string $coverThumb): void
     {
         $this->coverThumb = $coverThumb;
-
-        return $this;
     }
 
     public function getDescription(): ?string
@@ -217,11 +202,9 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
         return $this->description;
     }
 
-    public function setDescription(?string $description): static
+    public function setDescription(?string $description): void
     {
         $this->description = $description;
-
-        return $this;
     }
 
     /**
@@ -248,8 +231,6 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
 
         return $this;
     }
-
-
 
     public function getChapterCount(): int
     {
@@ -289,11 +270,15 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
         return $result;
     }
 
+    /** @return array<string, mixed> */
     public function retrieveApiArray(): array
     {
         return [
             'id' => $this->getId(),
-            'category' => $this->getCategory()->retrieveApiArray(),
+            'category' => [
+                'id' => $this->getCategory()->getId(),
+                'name' => $this->getCategory()->getName(),
+            ],
             'title' => $this->getTitle(),
             'instructor' => null !== $this->getInstructor() ? [
                 'id' => method_exists($this->getInstructor(), 'getId') ? $this->getInstructor()->getId() : null,
@@ -303,7 +288,7 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
             'learnHour' => $this->getLearnHour(),
             'coverThumb' => $this->getCoverThumb(),
             'description' => $this->getDescription(),
-            'plainDescription' => strip_tags($this->getDescription()),
+            'plainDescription' => strip_tags($this->getDescription() ?? ''),
             'lessonCount' => $this->getLessonCount(), // 课时
             'lessonTime' => $this->getLessonTime(), // 学时
             'chapterCount' => $this->getChapterCount(), // 章节数量
@@ -318,11 +303,9 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
         return $this->teacherName;
     }
 
-    public function setTeacherName(?string $teacherName): static
+    public function setTeacherName(?string $teacherName): void
     {
         $this->teacherName = $teacherName;
-
-        return $this;
     }
 
     public function getPrice(): ?string
@@ -330,17 +313,12 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
         return $this->price;
     }
 
-    public function setPrice(?string $price): static
+    public function setPrice(?string $price): void
     {
         $this->price = $price;
-
-        return $this;
     }
 
-
-
-
-
+    /** @return array<string, mixed> */
     public function retrieveAdminArray(): array
     {
         return [
@@ -482,6 +460,4 @@ class Course implements \Stringable, ApiArrayInterface, AdminArrayInterface
 
         return round($totalRating / $publishedEvaluates->count(), 2);
     }
-
-
 }

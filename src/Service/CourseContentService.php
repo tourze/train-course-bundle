@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainCourseBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -8,9 +10,10 @@ use Tourze\TrainCourseBundle\Entity\Chapter;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\CourseOutline;
 use Tourze\TrainCourseBundle\Entity\Lesson;
-use Tourze\TrainCourseBundle\Repository\ChapterRepository;
-use Tourze\TrainCourseBundle\Repository\CourseOutlineRepository;
-use Tourze\TrainCourseBundle\Repository\LessonRepository;
+use Tourze\TrainCourseBundle\Service\CourseContent\ContentOrderManager;
+use Tourze\TrainCourseBundle\Service\CourseContent\CourseContentFactory;
+use Tourze\TrainCourseBundle\Service\CourseContent\CourseContentImporter;
+use Tourze\TrainCourseBundle\Service\CourseContent\CourseStructureBuilder;
 
 /**
  * 课程内容服务
@@ -21,15 +24,17 @@ class CourseContentService
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly ChapterRepository $chapterRepository,
-        private readonly LessonRepository $lessonRepository,
-        private readonly CourseOutlineRepository $outlineRepository,
         private readonly CacheItemPoolInterface $cache,
+        private readonly CourseStructureBuilder $structureBuilder,
+        private readonly CourseContentFactory $contentFactory,
+        private readonly CourseContentImporter $contentImporter,
+        private readonly ContentOrderManager $orderManager,
     ) {
     }
 
     /**
      * 获取课程完整内容结构
+     * @return array<string, mixed>
      */
     public function getCourseContentStructure(Course $course): array
     {
@@ -37,65 +42,14 @@ class CourseContentService
         $cacheItem = $this->cache->getItem($cacheKey);
 
         if ($cacheItem->isHit()) {
-            return $cacheItem->get();
-        }
-
-        $chapters = $this->chapterRepository->findByCourseWithLessons($course);
-        $outlines = $this->outlineRepository->findPublishedByCourse($course);
-
-        $structure = [
-            'course' => [
-                'id' => $course->getId(),
-                'title' => $course->getTitle(),
-                'description' => $course->getDescription(),
-                'total_chapters' => count($chapters),
-                'total_lessons' => $course->getLessonCount(),
-                'total_duration' => $course->getDurationSecond(),
-                'learn_hour' => $course->getLearnHour(),
-            ],
-            'chapters' => [],
-            'outlines' => [],
-            'statistics' => $this->getCourseContentStatistics($course),
-        ];
-
-        // 组织章节和课时数据
-        foreach ($chapters as $chapter) {
-            $chapterData = [
-                'id' => $chapter->getId(),
-                'title' => $chapter->getTitle(),
-                // Chapter doesn't have description field
-                'sort_number' => $chapter->getSortNumber(),
-                'lessons' => [],
-            ];
-
-            foreach ($chapter->getLessons() as $lesson) {
-                $chapterData['lessons'][] = [
-                    'id' => $lesson->getId(),
-                    'title' => $lesson->getTitle(),
-                    // Lesson doesn't have description field
-                    'video_url' => $lesson->getVideoUrl(),
-                    'duration_second' => $lesson->getDurationSecond(),
-                    'sort_number' => $lesson->getSortNumber(),
-                    // Lesson doesn't have free field
-                ];
+            $cached = $cacheItem->get();
+            if (is_array($cached)) {
+                /** @var array<string, mixed> $cached */
+                return $cached;
             }
-
-            $structure['chapters'][] = $chapterData;
         }
 
-        // 组织大纲数据
-        foreach ($outlines as $outline) {
-            $structure['outlines'][] = [
-                'id' => $outline->getId(),
-                'title' => $outline->getTitle(),
-                'learning_objectives' => $outline->getLearningObjectives(),
-                'content_points' => $outline->getContentPoints(),
-                'key_difficulties' => $outline->getKeyDifficulties(),
-                'assessment_criteria' => $outline->getAssessmentCriteria(),
-                'estimated_minutes' => $outline->getEstimatedMinutes(),
-                'sort_number' => $outline->getSortNumber(),
-            ];
-        }
+        $structure = $this->structureBuilder->buildCourseContentStructure($course);
 
         // 缓存1小时
         $cacheItem->set($structure);
@@ -106,33 +60,12 @@ class CourseContentService
     }
 
     /**
-     * 获取课程内容统计信息
-     */
-    public function getCourseContentStatistics(Course $course): array
-    {
-        $chapterStats = $this->chapterRepository->getChapterStatistics($course);
-        // 需要修改，getLessonStatistics 期望 Chapter 参数而不是 Course
-        $lessonStats = [];
-        $outlineStats = $this->outlineRepository->getOutlineStatistics($course);
-
-        return [
-            'chapters' => $chapterStats,
-            'lessons' => $lessonStats,
-            'outlines' => $outlineStats,
-            'content_completeness' => $this->calculateContentCompleteness($course),
-        ];
-    }
-
-    /**
      * 创建课程章节
+     * @param array<string, mixed> $data
      */
     public function createChapter(Course $course, array $data): Chapter
     {
-        $chapter = new Chapter();
-        $chapter->setCourse($course);
-        $chapter->setTitle($data['title']);
-        // Chapter doesn't have description field
-        $chapter->setSortNumber($data['sort_number'] ?? 0);
+        $chapter = $this->contentFactory->createChapter($course, $data);
 
         $this->entityManager->persist($chapter);
         $this->entityManager->flush();
@@ -144,17 +77,11 @@ class CourseContentService
 
     /**
      * 创建课程课时
+     * @param array<string, mixed> $data
      */
     public function createLesson(Chapter $chapter, array $data): Lesson
     {
-        $lesson = new Lesson();
-        $lesson->setChapter($chapter);
-        $lesson->setTitle($data['title']);
-        // Lesson doesn't have description field
-        $lesson->setVideoUrl($data['video_url'] ?? null);
-        $lesson->setDurationSecond($data['duration_second'] ?? 0);
-        $lesson->setSortNumber($data['sort_number'] ?? 0);
-        // Lesson doesn't have free field
+        $lesson = $this->contentFactory->createLesson($chapter, $data);
 
         $this->entityManager->persist($lesson);
         $this->entityManager->flush();
@@ -166,20 +93,11 @@ class CourseContentService
 
     /**
      * 创建课程大纲
+     * @param array<string, mixed> $data
      */
     public function createOutline(Course $course, array $data): CourseOutline
     {
-        $outline = new CourseOutline();
-        $outline->setCourse($course);
-        $outline->setTitle($data['title']);
-        $outline->setLearningObjectives($data['learning_objectives'] ?? null);
-        $outline->setContentPoints($data['content_points'] ?? null);
-        $outline->setKeyDifficulties($data['key_difficulties'] ?? null);
-        $outline->setAssessmentCriteria($data['assessment_criteria'] ?? null);
-        $outline->setReferences($data['references'] ?? null);
-        $outline->setEstimatedMinutes($data['estimated_minutes'] ?? null);
-        $outline->setSortNumber($data['sort_number'] ?? 0);
-        $outline->setStatus($data['status'] ?? 'draft');
+        $outline = $this->contentFactory->createOutline($course, $data);
 
         $this->entityManager->persist($outline);
         $this->entityManager->flush();
@@ -191,61 +109,20 @@ class CourseContentService
 
     /**
      * 批量导入课程内容
+     * @param array<string, mixed> $contentData
+     * @return array<string, mixed>
      */
     public function batchImportContent(Course $course, array $contentData): array
     {
-        $results = [
-            'chapters' => [],
-            'lessons' => [],
-            'outlines' => [],
-            'errors' => [],
-        ];
-
         $this->entityManager->beginTransaction();
 
         try {
-            // 导入章节
-            if (isset($contentData['chapters'])) {
-                foreach ($contentData['chapters'] as $chapterData) {
-                    try {
-                        $chapter = $this->createChapter($course, $chapterData);
-                        $results['chapters'][] = $chapter->getId();
-
-                        // 导入该章节的课时
-                        if (isset($chapterData['lessons'])) {
-                            foreach ($chapterData['lessons'] as $lessonData) {
-                                try {
-                                    $lesson = $this->createLesson($chapter, $lessonData);
-                                    $results['lessons'][] = $lesson->getId();
-                                } catch (\Throwable $e) {
-                                    $results['errors'][] = "课时导入失败: " . $e->getMessage();
-                                }
-                            }
-                        }
-                    } catch (\Throwable $e) {
-                        $results['errors'][] = "章节导入失败: " . $e->getMessage();
-                    }
-                }
-            }
-
-            // 导入大纲
-            if (isset($contentData['outlines'])) {
-                foreach ($contentData['outlines'] as $outlineData) {
-                    try {
-                        $outline = $this->createOutline($course, $outlineData);
-                        $results['outlines'][] = $outline->getId();
-                    } catch (\Throwable $e) {
-                        $results['errors'][] = "大纲导入失败: " . $e->getMessage();
-                    }
-                }
-            }
-
+            $results = $this->contentImporter->batchImportContent($course, $contentData);
             $this->entityManager->commit();
             $this->clearCourseContentCache($course);
-
         } catch (\Throwable $e) {
             $this->entityManager->rollback();
-            $results['errors'][] = "批量导入失败: " . $e->getMessage();
+            $results = ['errors' => ['批量导入失败: ' . $e->getMessage()]];
         }
 
         return $results;
@@ -253,114 +130,62 @@ class CourseContentService
 
     /**
      * 重新排序章节
+     * @param array<int, string> $chapterIds
      */
     public function reorderChapters(Course $course, array $chapterIds): bool
     {
-        try {
-            $this->entityManager->beginTransaction();
+        $result = $this->orderManager->reorderChapters($course, $chapterIds);
 
-            foreach ($chapterIds as $index => $chapterId) {
-                $chapter = $this->chapterRepository->find($chapterId);
-                if (null !== $chapter && $chapter->getCourse()->getId() === $course->getId()) {
-                    $chapter->setSortNumber(count($chapterIds) - $index);
-                    $this->entityManager->persist($chapter);
-                }
-            }
-
+        if ($result) {
             $this->entityManager->flush();
-            $this->entityManager->commit();
-
             $this->clearCourseContentCache($course);
-            return true;
-
-        } catch (\Throwable $e) {
-            $this->entityManager->rollback();
-            return false;
         }
+
+        return $result;
     }
 
     /**
      * 重新排序课时
+     * @param array<int, string> $lessonIds
      */
     public function reorderLessons(Chapter $chapter, array $lessonIds): bool
     {
-        try {
-            $this->entityManager->beginTransaction();
+        $result = $this->orderManager->reorderLessons($chapter, $lessonIds);
 
-            foreach ($lessonIds as $index => $lessonId) {
-                $lesson = $this->lessonRepository->find($lessonId);
-                if (null !== $lesson && $lesson->getChapter()->getId() === $chapter->getId()) {
-                    $lesson->setSortNumber(count($lessonIds) - $index);
-                    $this->entityManager->persist($lesson);
-                }
-            }
-
+        if ($result) {
             $this->entityManager->flush();
-            $this->entityManager->commit();
-
             $this->clearCourseContentCache($chapter->getCourse());
-            return true;
-
-        } catch (\Throwable $e) {
-            $this->entityManager->rollback();
-            return false;
         }
+
+        return $result;
     }
 
     /**
-     * 计算内容完整度
+     * 获取课程内容统计信息
+     * @return array<string, mixed>
      */
-    private function calculateContentCompleteness(Course $course): array
+    public function getCourseContentStatistics(Course $course): array
     {
-        $score = 0;
-        $maxScore = 100;
-        $details = [];
+        $cacheKey = sprintf('course_content_statistics_%s', $course->getId());
+        $cacheItem = $this->cache->getItem($cacheKey);
 
-        // 基础信息完整度 (20分)
-        if ('' !== $course->getTitle()) $score += 5;
-        if (null !== $course->getDescription()) $score += 5;
-        if (null !== $course->getCoverThumb()) $score += 5;
-        if (null !== $course->getLearnHour()) $score += 5;
-
-        // 章节内容完整度 (40分)
-        $chapters = $this->chapterRepository->findByCourse($course);
-        if (count($chapters) > 0) {
-            $score += 20;
-            $lessonsCount = 0;
-            foreach ($chapters as $chapter) {
-                $lessonsCount += $chapter->getLessons()->count();
+        if ($cacheItem->isHit()) {
+            $cached = $cacheItem->get();
+            if (is_array($cached)) {
+                /** @var array<string, mixed> $cached */
+                return $cached;
             }
-            if ($lessonsCount > 0) $score += 20;
         }
 
-        // 大纲完整度 (20分)
-        $outlines = $this->outlineRepository->findByCourse($course);
-        if (count($outlines) > 0) {
-            $score += 10;
-            $publishedOutlines = $this->outlineRepository->findPublishedByCourse($course);
-            if (count($publishedOutlines) > 0) $score += 10;
-        }
+        // 构建统计信息
+        $statistics = $this->structureBuilder->buildStatistics($course);
 
-        // 视频内容完整度 (20分)
-        // 需要修改，findLessonsWithVideo 期望 Chapter 参数而不是 Course
-        // 暂时跳过视频检查
-        // $lessonsWithVideo = $this->lessonRepository->findLessonsWithVideo($course);
-        // if (count($lessonsWithVideo) > 0) {
-        //     $score += 20;
-        // }
+        // 缓存结果
+        $cacheItem->set($statistics);
+        $cacheItem->expiresAfter(3600); // 缓存1小时
+        $this->cache->save($cacheItem);
 
-        $details = [
-            'basic_info' => min(20, $score <= 20 ? $score : 20),
-            'chapters_lessons' => min(40, max(0, $score - 20) <= 40 ? max(0, $score - 20) : 40),
-            'outlines' => min(20, max(0, $score - 60) <= 20 ? max(0, $score - 60) : 20),
-            'videos' => min(20, max(0, $score - 80) <= 20 ? max(0, $score - 80) : 20),
-        ];
-
-        return [
-            'score' => min($maxScore, $score),
-            'percentage' => min(100, round($score / $maxScore * 100, 2)),
-            'details' => $details,
-        ];
+        return $statistics;
     }
 
     /**
@@ -370,5 +195,8 @@ class CourseContentService
     {
         $cacheKey = sprintf('course_content_structure_%s', $course->getId());
         $this->cache->deleteItem($cacheKey);
+
+        $cacheKeyStats = sprintf('course_content_statistics_%s', $course->getId());
+        $this->cache->deleteItem($cacheKeyStats);
     }
-} 
+}

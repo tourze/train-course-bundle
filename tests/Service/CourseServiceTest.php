@@ -1,71 +1,113 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainCourseBundle\Tests\Service;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
+use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Service\CourseService;
 
 /**
- * CourseService 单元测试
+ * CourseService 集成测试
+ *
+ * @internal
  */
-class CourseServiceTest extends TestCase
+#[CoversClass(CourseService::class)]
+#[RunTestsInSeparateProcesses]
+final class CourseServiceTest extends AbstractIntegrationTestCase
 {
-    protected function setUp(): void
+    protected function onSetUp(): void
     {
-        // Service 测试主要验证方法存在性
     }
 
-    public function test_serviceExists(): void
+    private function getCourseService(): CourseService
     {
-        $reflection = new \ReflectionClass(CourseService::class);
-        $this->assertTrue($reflection->isInstantiable());
+        return self::getService(CourseService::class);
     }
 
-    public function test_getAllChildCategoriesMethod_exists(): void
+    public function testServiceExists(): void
     {
-        $reflection = new \ReflectionClass(CourseService::class);
-        $this->assertTrue($reflection->hasMethod('getAllChildCategories'));
+        $courseService = $this->getCourseService();
+        $this->assertInstanceOf(CourseService::class, $courseService);
     }
 
-    public function test_getLessonPlayUrlMethod_exists(): void
+    public function testFindByIdMethodExists(): void
     {
         $reflection = new \ReflectionClass(CourseService::class);
-        $this->assertTrue($reflection->hasMethod('getLessonPlayUrl'));
+        $this->assertTrue($reflection->hasMethod('findById'));
     }
 
-    public function test_getLessonArrayMethod_exists(): void
+    public function testFindOneByMethodExists(): void
     {
         $reflection = new \ReflectionClass(CourseService::class);
-        $this->assertTrue($reflection->hasMethod('getLessonArray'));
+        $this->assertTrue($reflection->hasMethod('findOneBy'));
     }
 
-    public function test_isCourseValidMethod_exists(): void
+    public function testServiceIsReadonly(): void
     {
         $reflection = new \ReflectionClass(CourseService::class);
-        $this->assertTrue($reflection->hasMethod('isCourseValid'));
+        $this->assertTrue($reflection->isReadOnly());
     }
 
-    public function test_getCourseTotalDurationMethod_exists(): void
+    public function testFindByIdWithNonExistentId(): void
     {
-        $reflection = new \ReflectionClass(CourseService::class);
-        $this->assertTrue($reflection->hasMethod('getCourseTotalDuration'));
+        $courseService = $this->getCourseService();
+        $result = $courseService->findById('non-existent-id');
+        $this->assertNull($result);
     }
 
-    public function test_getCourseTotalLessonsMethod_exists(): void
+    public function testFindOneByWithEmptyCriteria(): void
     {
-        $reflection = new \ReflectionClass(CourseService::class);
-        $this->assertTrue($reflection->hasMethod('getCourseTotalLessons'));
+        $courseService = $this->getCourseService();
+        $result = $courseService->findOneBy([]);
+        $this->assertInstanceOf(Course::class, $result);
     }
 
-    public function test_isSupportedVideoProtocolMethod_exists(): void
+    public function testFindByWithEmptyCriteria(): void
     {
-        $reflection = new \ReflectionClass(CourseService::class);
-        $this->assertTrue($reflection->hasMethod('isSupportedVideoProtocol'));
+        $courseService = $this->getCourseService();
+        $result = $courseService->findBy([]);
+        $this->assertIsArray($result);
     }
 
-    public function test_getCourseProgressMethod_exists(): void
+    public function testGetCourseTotalDurationWithEmptyChapters(): void
     {
-        $reflection = new \ReflectionClass(CourseService::class);
-        $this->assertTrue($reflection->hasMethod('getCourseProgress'));
+        $courseService = $this->getCourseService();
+        $course = new Course();
+        $duration = $courseService->getCourseTotalDuration($course);
+        $this->assertSame(0, $duration);
+    }
+
+    public function testGetCourseTotalLessonsWithEmptyChapters(): void
+    {
+        $courseService = $this->getCourseService();
+        $course = new Course();
+        $lessons = $courseService->getCourseTotalLessons($course);
+        $this->assertSame(0, $lessons);
+    }
+
+    public function testIsSupportedVideoProtocol(): void
+    {
+        $courseService = $this->getCourseService();
+        $this->assertIsBool($courseService->isSupportedVideoProtocol('http://example.com'));
+    }
+
+    public function testGetCourseProgress(): void
+    {
+        $courseService = $this->getCourseService();
+        $course = new Course();
+        $progress = $courseService->getCourseProgress($course, 'user-123');
+
+        $this->assertIsArray($progress);
+        $this->assertArrayHasKey('course_id', $progress);
+        $this->assertArrayHasKey('user_id', $progress);
+        $this->assertArrayHasKey('total_lessons', $progress);
+        $this->assertArrayHasKey('completed_lessons', $progress);
+        $this->assertArrayHasKey('progress_percentage', $progress);
+        $this->assertArrayHasKey('total_duration', $progress);
+        $this->assertArrayHasKey('watched_duration', $progress);
     }
 }

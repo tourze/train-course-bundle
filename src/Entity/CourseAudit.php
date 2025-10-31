@@ -4,11 +4,11 @@ namespace Tourze\TrainCourseBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Stringable;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\CourseAuditRepository;
-use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
 /**
  * 课程审核实体
@@ -18,42 +18,65 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
  */
 #[ORM\Entity(repositoryClass: CourseAuditRepository::class)]
 #[ORM\Table(name: 'train_course_audit', options: ['comment' => '课程审核'])]
-class CourseAudit implements Stringable
+class CourseAudit implements \Stringable
 {
     use SnowflakeKeyAware;
-    use TimestampableTrait;
+    use TimestampableAware;
     use BlameableAware;
-
 
     #[ORM\ManyToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', options: ['comment' => '关联课程'])]
+    #[Assert\NotNull(message: '关联课程不能为空')]
     private ?Course $course = null;
 
+    #[ORM\Column(type: Types::STRING, length: 20, nullable: false, options: ['comment' => '审核状态', 'default' => 'pending'])]
+    #[Assert\NotBlank(message: '审核状态不能为空')]
+    #[Assert\Length(max: 20, maxMessage: '审核状态长度不能超过 {{ limit }} 个字符')]
+    #[Assert\Choice(choices: ['pending', 'approved', 'rejected', 'cancelled'], message: '审核状态必须是: {{ choices }}')]
     private string $status = 'pending';
 
+    #[ORM\Column(type: Types::STRING, length: 20, nullable: false, options: ['comment' => '审核类型', 'default' => 'content'])]
+    #[Assert\NotBlank(message: '审核类型不能为空')]
+    #[Assert\Length(max: 20, maxMessage: '审核类型长度不能超过 {{ limit }} 个字符')]
+    #[Assert\Choice(choices: ['content', 'quality', 'final', 'update'], message: '审核类型必须是: {{ choices }}')]
     private string $auditType = 'content';
 
     #[ORM\Column(length: 100, nullable: true, options: ['comment' => '审核人员'])]
+    #[Assert\Length(max: 100, maxMessage: '审核人员名称长度不能超过 {{ limit }} 个字符')]
     private ?string $auditor = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '审核意见'])]
+    #[Assert\Length(max: 65535, maxMessage: '审核意见长度不能超过 {{ limit }} 个字符')]
     private ?string $auditComment = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '审核时间'])]
+    #[Assert\Type(type: '\DateTimeInterface', message: '审核时间必须是有效的日期时间')]
     private ?\DateTimeInterface $auditTime = null;
 
+    #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '审核级别', 'default' => 1])]
+    #[Assert\Positive(message: '审核级别必须是正数')]
     private int $auditLevel = 1;
 
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '优先级', 'default' => 0])]
+    #[Assert\PositiveOrZero(message: '优先级必须大于或等于0')]
     private int $priority = 0;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '截止时间'])]
+    #[Assert\Type(type: '\DateTimeInterface', message: '截止时间必须是有效的日期时间')]
     private ?\DateTimeInterface $deadline = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '审核数据'])]
+    #[Assert\Type(type: 'array', message: '审核数据必须是数组类型')]
     private ?array $auditData = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '扩展属性'])]
+    #[Assert\Type(type: 'array', message: '扩展属性必须是数组类型')]
     private ?array $metadata = null;
 
     public function getCourse(): ?Course
@@ -61,10 +84,9 @@ class CourseAudit implements Stringable
         return $this->course;
     }
 
-    public function setCourse(?Course $course): static
+    public function setCourse(?Course $course): void
     {
         $this->course = $course;
-        return $this;
     }
 
     public function getStatus(): string
@@ -72,10 +94,9 @@ class CourseAudit implements Stringable
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(string $status): void
     {
         $this->status = $status;
-        return $this;
     }
 
     public function getAuditType(): string
@@ -83,10 +104,9 @@ class CourseAudit implements Stringable
         return $this->auditType;
     }
 
-    public function setAuditType(string $auditType): static
+    public function setAuditType(string $auditType): void
     {
         $this->auditType = $auditType;
-        return $this;
     }
 
     public function getAuditor(): ?string
@@ -94,10 +114,9 @@ class CourseAudit implements Stringable
         return $this->auditor;
     }
 
-    public function setAuditor(?string $auditor): static
+    public function setAuditor(?string $auditor): void
     {
         $this->auditor = $auditor;
-        return $this;
     }
 
     public function getAuditComment(): ?string
@@ -105,10 +124,9 @@ class CourseAudit implements Stringable
         return $this->auditComment;
     }
 
-    public function setAuditComment(?string $auditComment): static
+    public function setAuditComment(?string $auditComment): void
     {
         $this->auditComment = $auditComment;
-        return $this;
     }
 
     public function getAuditTime(): ?\DateTimeInterface
@@ -116,10 +134,9 @@ class CourseAudit implements Stringable
         return $this->auditTime;
     }
 
-    public function setAuditTime(?\DateTimeInterface $auditTime): static
+    public function setAuditTime(?\DateTimeInterface $auditTime): void
     {
         $this->auditTime = $auditTime;
-        return $this;
     }
 
     public function getAuditLevel(): int
@@ -127,10 +144,9 @@ class CourseAudit implements Stringable
         return $this->auditLevel;
     }
 
-    public function setAuditLevel(int $auditLevel): static
+    public function setAuditLevel(int $auditLevel): void
     {
         $this->auditLevel = $auditLevel;
-        return $this;
     }
 
     public function getPriority(): int
@@ -138,10 +154,9 @@ class CourseAudit implements Stringable
         return $this->priority;
     }
 
-    public function setPriority(int $priority): static
+    public function setPriority(int $priority): void
     {
         $this->priority = $priority;
-        return $this;
     }
 
     public function getDeadline(): ?\DateTimeInterface
@@ -149,32 +164,33 @@ class CourseAudit implements Stringable
         return $this->deadline;
     }
 
-    public function setDeadline(?\DateTimeInterface $deadline): static
+    public function setDeadline(?\DateTimeInterface $deadline): void
     {
         $this->deadline = $deadline;
-        return $this;
     }
 
+    /** @return array<string, mixed>|null */
     public function getAuditData(): ?array
     {
         return $this->auditData;
     }
 
-    public function setAuditData(?array $auditData): static
+    /** @param array<string, mixed>|null $auditData */
+    public function setAuditData(?array $auditData): void
     {
         $this->auditData = $auditData;
-        return $this;
     }
 
+    /** @return array<string, mixed>|null */
     public function getMetadata(): ?array
     {
         return $this->metadata;
     }
 
-    public function setMetadata(?array $metadata): static
+    /** @param array<string, mixed>|null $metadata */
+    public function setMetadata(?array $metadata): void
     {
         $this->metadata = $metadata;
-        return $this;
     }
 
     /**
@@ -182,7 +198,7 @@ class CourseAudit implements Stringable
      */
     public function isApproved(): bool
     {
-        return $this->status === 'approved';
+        return 'approved' === $this->status;
     }
 
     /**
@@ -190,7 +206,7 @@ class CourseAudit implements Stringable
      */
     public function isRejected(): bool
     {
-        return $this->status === 'rejected';
+        return 'rejected' === $this->status;
     }
 
     /**
@@ -198,7 +214,7 @@ class CourseAudit implements Stringable
      */
     public function isPending(): bool
     {
-        return $this->status === 'pending';
+        return 'pending' === $this->status;
     }
 
     /**
@@ -209,7 +225,7 @@ class CourseAudit implements Stringable
         if (null === $this->deadline) {
             return false;
         }
-        
+
         return $this->deadline < new \DateTime() && $this->isPending();
     }
 
@@ -252,23 +268,21 @@ class CourseAudit implements Stringable
     /**
      * 设置审核人ID（兼容旧方法名）
      */
-    public function setAuditorId(?string $auditorId): static
+    public function setAuditorId(?string $auditorId): void
     {
         $this->auditor = $auditorId;
-        return $this;
     }
 
     /**
      * 设置拒绝原因（使用审核意见字段）
      */
-    public function setRejectReason(?string $reason): static
+    public function setRejectReason(?string $reason): void
     {
         $this->auditComment = $reason;
-        return $this;
     }
 
     public function __toString(): string
     {
         return (string) $this->id;
     }
-} 
+}

@@ -4,17 +4,16 @@ namespace Tourze\TrainCourseBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Evaluate;
 
 /**
  * 课程评价仓储
  *
- * @method Evaluate|null find($id, $lockMode = null, $lockVersion = null)
- * @method Evaluate|null findOneBy(array $criteria, array $orderBy = null)
- * @method Evaluate[]    findAll()
- * @method Evaluate[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @extends ServiceEntityRepository<Evaluate>
  */
+#[AsRepository(entityClass: Evaluate::class)]
 class EvaluateRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -24,9 +23,13 @@ class EvaluateRepository extends ServiceEntityRepository
 
     /**
      * 根据用户查找评价
+     *
+     * @return array<Evaluate>
+     * @phpstan-return list<Evaluate>
      */
     public function findByUser(string $userId): array
     {
+        /** @var list<Evaluate> */
         return $this->createQueryBuilder('e')
             ->where('e.userId = :userId')
             ->andWhere('e.status = :status')
@@ -34,26 +37,34 @@ class EvaluateRepository extends ServiceEntityRepository
             ->setParameter('status', 'published')
             ->orderBy('e.createTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 根据课程查找评价
+     *
+     * @return array<Evaluate>
+     * @phpstan-return list<Evaluate>
      */
     public function findByCourse(Course $course, ?string $status = 'published'): array
     {
         $qb = $this->createQueryBuilder('e')
             ->where('e.course = :course')
-            ->setParameter('course', $course);
+            ->setParameter('course', $course)
+        ;
 
         if ((bool) $status) {
             $qb->andWhere('e.status = :status')
-               ->setParameter('status', $status);
+                ->setParameter('status', $status)
+            ;
         }
 
+        /** @var list<Evaluate> */
         return $qb->orderBy('e.createTime', 'DESC')
-                  ->getQuery()
-                  ->getResult();
+            ->getQuery()
+            ->getResult()
+        ;
     }
 
     /**
@@ -61,13 +72,18 @@ class EvaluateRepository extends ServiceEntityRepository
      */
     public function findByUserAndCourse(string $userId, Course $course): ?Evaluate
     {
-        return $this->createQueryBuilder('e')
+        $result = $this->createQueryBuilder('e')
             ->where('e.userId = :userId')
             ->andWhere('e.course = :course')
             ->setParameter('userId', $userId)
             ->setParameter('course', $course)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
+
+        assert($result instanceof Evaluate || null === $result);
+
+        return $result;
     }
 
     /**
@@ -75,11 +91,14 @@ class EvaluateRepository extends ServiceEntityRepository
      */
     public function hasEvaluatedByUser(string $userId, Course $course): bool
     {
-        return $this->findByUserAndCourse($userId, $course) !== null;
+        return null !== $this->findByUserAndCourse($userId, $course);
     }
 
     /**
      * 根据评分查找评价
+     *
+     * @return array<Evaluate>
+     * @phpstan-return list<Evaluate>
      */
     public function findByRating(int $rating, ?Course $course = null): array
     {
@@ -87,29 +106,38 @@ class EvaluateRepository extends ServiceEntityRepository
             ->where('e.rating = :rating')
             ->andWhere('e.status = :status')
             ->setParameter('rating', $rating)
-            ->setParameter('status', 'published');
+            ->setParameter('status', 'published')
+        ;
 
         if ((bool) $course) {
             $qb->andWhere('e.course = :course')
-               ->setParameter('course', $course);
+                ->setParameter('course', $course)
+            ;
         }
 
+        /** @var list<Evaluate> */
         return $qb->orderBy('e.createTime', 'DESC')
-                  ->getQuery()
-                  ->getResult();
+            ->getQuery()
+            ->getResult()
+        ;
     }
 
     /**
      * 根据状态查找评价
+     *
+     * @return array<Evaluate>
+     * @phpstan-return list<Evaluate>
      */
     public function findByStatus(string $status): array
     {
+        /** @var list<Evaluate> */
         return $this->createQueryBuilder('e')
             ->where('e.status = :status')
             ->setParameter('status', $status)
             ->orderBy('e.createTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
@@ -124,53 +152,87 @@ class EvaluateRepository extends ServiceEntityRepository
             ->setParameter('course', $course)
             ->setParameter('status', 'published')
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
-        return round($result ?? 0, 2);
+        return round((float) ($result ?? 0), 2);
     }
 
     /**
      * 获取评价统计信息
+     *
+     * @return array{total_evaluates: int, average_rating: float, rating_distribution: array<int, int>}
      */
     public function getEvaluateStatistics(?Course $course = null): array
     {
-        $qb = $this->createQueryBuilder('e')
+        $qbTotal = $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
             ->where('e.status = :status')
-            ->setParameter('status', 'published');
+            ->setParameter('status', 'published')
+        ;
 
         if ((bool) $course) {
-            $qb->andWhere('e.course = :course')
-               ->setParameter('course', $course);
+            $qbTotal->andWhere('e.course = :course')
+                ->setParameter('course', $course)
+            ;
         }
 
-        $totalEvaluates = $qb->select('COUNT(e.id)')
+        $totalEvaluates = (int) $qbTotal
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
-        $averageRating = $qb->select('AVG(e.rating)')
+        $qbAvg = $this->createQueryBuilder('e')
+            ->select('AVG(e.rating)')
+            ->where('e.status = :status')
+            ->setParameter('status', 'published')
+        ;
+
+        if ((bool) $course) {
+            $qbAvg->andWhere('e.course = :course')
+                ->setParameter('course', $course)
+            ;
+        }
+
+        $averageRating = (float) ($qbAvg
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult() ?? 0);
 
         // 各星级评价数量统计
         $ratingStats = [];
-        for ($i = 1; $i <= 5; $i++) {
-            $count = $qb->select('COUNT(e.id)')
+        for ($i = 1; $i <= 5; ++$i) {
+            $qb = $this->createQueryBuilder('e')
+                ->select('COUNT(e.id)')
+                ->where('e.status = :status')
                 ->andWhere('e.rating = :rating')
+                ->setParameter('status', 'published')
                 ->setParameter('rating', $i)
-                ->getQuery()
-                ->getSingleScalarResult();
+            ;
+
+            if ((bool) $course) {
+                $qb->andWhere('e.course = :course')
+                    ->setParameter('course', $course)
+                ;
+            }
+
+            $count = (int) $qb->getQuery()
+                ->getSingleScalarResult()
+            ;
             $ratingStats[$i] = $count;
         }
 
         return [
             'total_evaluates' => $totalEvaluates,
-            'average_rating' => round($averageRating ?? 0, 2),
+            'average_rating' => round($averageRating, 2),
             'rating_distribution' => $ratingStats,
         ];
     }
 
     /**
      * 搜索评价
+     *
+     * @return array<Evaluate>
+     * @phpstan-return list<Evaluate>
      */
     public function searchEvaluates(string $keyword, ?Course $course = null): array
     {
@@ -178,23 +240,31 @@ class EvaluateRepository extends ServiceEntityRepository
             ->where('e.content LIKE :keyword OR e.userNickname LIKE :keyword')
             ->andWhere('e.status = :status')
             ->setParameter('keyword', '%' . $keyword . '%')
-            ->setParameter('status', 'published');
+            ->setParameter('status', 'published')
+        ;
 
         if ((bool) $course) {
             $qb->andWhere('e.course = :course')
-               ->setParameter('course', $course);
+                ->setParameter('course', $course)
+            ;
         }
 
+        /** @var list<Evaluate> */
         return $qb->orderBy('e.createTime', 'DESC')
-                  ->getQuery()
-                  ->getResult();
+            ->getQuery()
+            ->getResult()
+        ;
     }
 
     /**
      * 获取热门评价（按点赞数排序）
+     *
+     * @return array<Evaluate>
+     * @phpstan-return list<Evaluate>
      */
     public function findPopularEvaluates(Course $course, int $limit = 10): array
     {
+        /** @var list<Evaluate> */
         return $this->createQueryBuilder('e')
             ->where('e.course = :course')
             ->andWhere('e.status = :status')
@@ -204,14 +274,19 @@ class EvaluateRepository extends ServiceEntityRepository
             ->addOrderBy('e.createTime', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 获取最新评价
+     *
+     * @return array<Evaluate>
+     * @phpstan-return list<Evaluate>
      */
     public function findLatestEvaluates(Course $course, int $limit = 10): array
     {
+        /** @var list<Evaluate> */
         return $this->createQueryBuilder('e')
             ->where('e.course = :course')
             ->andWhere('e.status = :status')
@@ -220,19 +295,43 @@ class EvaluateRepository extends ServiceEntityRepository
             ->orderBy('e.createTime', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 查找待审核的评价
+     *
+     * @return array<Evaluate>
+     * @phpstan-return list<Evaluate>
      */
     public function findPendingEvaluates(): array
     {
+        /** @var list<Evaluate> */
         return $this->createQueryBuilder('e')
             ->where('e.status = :status')
             ->setParameter('status', 'pending')
             ->orderBy('e.createTime', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
-} 
+
+    public function save(Evaluate $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(Evaluate $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+}

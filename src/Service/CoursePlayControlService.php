@@ -6,6 +6,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\CoursePlayControl;
+use Tourze\TrainCourseBundle\Exception\AuthDataEncodeException;
 use Tourze\TrainCourseBundle\Exception\InvalidPlayAuthTokenException;
 use Tourze\TrainCourseBundle\Repository\CoursePlayControlRepository;
 
@@ -20,12 +21,13 @@ class CoursePlayControlService
         private readonly EntityManagerInterface $entityManager,
         private readonly CoursePlayControlRepository $playControlRepository,
         private readonly CacheItemPoolInterface $cache,
-        private readonly CourseConfigService $configService
+        private readonly CourseConfigService $configService,
     ) {
     }
 
     /**
      * 获取课程的播放控制配置
+     * @return array<string, mixed>
      */
     public function getPlayControlConfig(Course $course): array
     {
@@ -33,17 +35,19 @@ class CoursePlayControlService
         $cacheItem = $this->cache->getItem($cacheKey);
 
         if ($cacheItem->isHit()) {
-            return $cacheItem->get();
+            $cached = $cacheItem->get();
+            if (is_array($cached)) {
+                /** @var array<string, mixed> */
+                return $cached;
+            }
         }
 
         $playControl = $this->playControlRepository->findByCourse($course);
-        
-        if (null === $playControl) {
-            // 使用默认配置
-            $config = $this->getDefaultPlayControlConfig();
-        } else {
-            $config = $playControl->getPlayControlConfig();
-        }
+
+        /** @var array<string, mixed> $config */
+        $config = null === $playControl
+            ? $this->getDefaultPlayControlConfig()
+            : $playControl->getPlayControlConfig();
 
         // 缓存30分钟
         $cacheItem->set($config);
@@ -56,38 +60,14 @@ class CoursePlayControlService
     /**
      * 创建或更新课程播放控制配置
      */
+    /**
+     * @param array<string, mixed> $config
+     */
     public function createOrUpdatePlayControl(Course $course, array $config): CoursePlayControl
     {
-        $playControl = $this->playControlRepository->findByCourse($course);
-        
-        if (null === $playControl) {
-            $playControl = new CoursePlayControl();
-            $playControl->setCourse($course);
-        }
-
-        // 更新配置
-        $playControl->setEnabled($config['enabled'] ?? true);
-        $playControl->setAllowFastForward($config['allow_fast_forward'] ?? false);
-        $playControl->setAllowSpeedControl($config['allow_speed_control'] ?? false);
-        $playControl->setAllowedSpeeds($config['allowed_speeds'] ?? [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]);
-        $playControl->setEnableWatermark($config['enable_watermark'] ?? true);
-        $playControl->setWatermarkText($config['watermark_text'] ?? null);
-        $playControl->setWatermarkPosition($config['watermark_position'] ?? 'bottom-right');
-        $playControl->setWatermarkOpacity($config['watermark_opacity'] ?? 50);
-        $playControl->setMaxDeviceCount($config['max_device_count'] ?? 3);
-        $playControl->setPlayAuthDuration($config['play_auth_duration'] ?? 3600);
-        $playControl->setEnableResume($config['enable_resume'] ?? true);
-        $playControl->setMinWatchDuration($config['min_watch_duration'] ?? null);
-        $playControl->setProgressCheckInterval($config['progress_check_interval'] ?? 30);
-        $playControl->setAllowSeeking($config['allow_seeking'] ?? false);
-        $playControl->setAllowContextMenu($config['allow_context_menu'] ?? false);
-        $playControl->setAllowDownload($config['allow_download'] ?? false);
-        $playControl->setExtendedConfig($config['extended_config'] ?? null);
-
-        $this->entityManager->persist($playControl);
-        $this->entityManager->flush();
-
-        // 清除缓存
+        $playControl = $this->findOrCreatePlayControl($course);
+        $this->applyPlayControlConfig($playControl, $config);
+        $this->savePlayControl($playControl);
         $this->clearPlayControlCache($course);
 
         return $playControl;
@@ -119,7 +99,8 @@ class CoursePlayControlService
     public function canFastForward(Course $course): bool
     {
         $config = $this->getPlayControlConfig($course);
-        return $config['enabled'] && $config['allow_fast_forward'];
+
+        return (bool) $config['enabled'] && (bool) $config['allow_fast_forward'];
     }
 
     /**
@@ -128,25 +109,46 @@ class CoursePlayControlService
     public function canControlSpeed(Course $course): bool
     {
         $config = $this->getPlayControlConfig($course);
-        return $config['enabled'] && $config['allow_speed_control'];
+
+        return (bool) $config['enabled'] && (bool) $config['allow_speed_control'];
     }
 
     /**
      * 获取允许的播放速度列表
+     * @return array<int, float>
      */
     public function getAllowedSpeeds(Course $course): array
     {
         $config = $this->getPlayControlConfig($course);
-        return $config['allowed_speeds'] ?? [1.0];
+
+        $allowedSpeeds = $config['allowed_speeds'] ?? [1.0];
+
+        if (!is_array($allowedSpeeds)) {
+            return [1.0];
+        }
+
+        return array_values(array_filter($allowedSpeeds, function ($speed): bool {
+            return is_float($speed) || is_int($speed);
+        }));
     }
 
     /**
      * 获取水印配置
+     * @return array<string, mixed>
      */
     public function getWatermarkConfig(Course $course): array
     {
         $config = $this->getPlayControlConfig($course);
-        return $config['watermark'] ?? ['enabled' => false];
+
+        $watermark = $config['watermark'] ?? ['enabled' => false];
+
+        if (!is_array($watermark)) {
+            /** @var array<string, mixed> */
+            return ['enabled' => false];
+        }
+
+        /** @var array<string, mixed> */
+        return $watermark;
     }
 
     /**
@@ -155,19 +157,21 @@ class CoursePlayControlService
     public function isStrictMode(Course $course): bool
     {
         $config = $this->getPlayControlConfig($course);
-        return $config['enabled'] && 
-               !$config['allow_fast_forward'] && 
-               !$config['allow_seeking'];
+
+        return (bool) $config['enabled']
+               && !(bool) $config['allow_fast_forward']
+               && !(bool) $config['allow_seeking'];
     }
 
     /**
      * 生成播放凭证
+     * @return array<string, mixed>
      */
     public function generatePlayAuth(Course $course, string $userId): array
     {
         $config = $this->getPlayControlConfig($course);
-        $duration = $config['play_auth_duration'] ?? 3600;
-        
+        $duration = is_int($config['play_auth_duration'] ?? null) ? $config['play_auth_duration'] : 3600;
+
         $authData = [
             'course_id' => $course->getId(),
             'user_id' => $userId,
@@ -177,7 +181,11 @@ class CoursePlayControlService
         ];
 
         // 这里可以添加JWT或其他加密逻辑
-        $token = base64_encode(json_encode($authData));
+        $encodedData = json_encode($authData);
+        if (false === $encodedData) {
+            throw new AuthDataEncodeException('Failed to encode auth data');
+        }
+        $token = base64_encode($encodedData);
 
         return [
             'token' => $token,
@@ -188,20 +196,32 @@ class CoursePlayControlService
 
     /**
      * 验证播放凭证
+     * @return array<string, mixed>
      */
     public function validatePlayAuth(string $token): array
     {
         try {
-            $authData = json_decode(base64_decode($token), true);
-            
-            if (!is_array($authData) || !isset($authData['expires_at'])) {
+            $decodedToken = base64_decode($token, true);
+            if (false === $decodedToken) {
+                throw new InvalidPlayAuthTokenException('Invalid base64 token');
+            }
+            $authData = json_decode($decodedToken, true);
+
+            if (!is_array($authData)) {
+                throw new InvalidPlayAuthTokenException('Invalid play auth token format');
+            }
+
+            if (!isset($authData['expires_at'])) {
                 throw new InvalidPlayAuthTokenException('Invalid play auth token');
             }
 
-            if ($authData['expires_at'] < time()) {
+            $expiresAt = is_int($authData['expires_at']) ? $authData['expires_at'] : 0;
+
+            if ($expiresAt < time()) {
                 throw new InvalidPlayAuthTokenException('Play auth token expired');
             }
 
+            /** @var array<string, mixed> */
             return $authData;
         } catch (\Throwable $e) {
             throw new InvalidPlayAuthTokenException('Invalid play auth token: ' . $e->getMessage());
@@ -210,6 +230,9 @@ class CoursePlayControlService
 
     /**
      * 获取默认播放控制配置
+     */
+    /**
+     * @return array<string, mixed>
      */
     private function getDefaultPlayControlConfig(): array
     {
@@ -247,8 +270,209 @@ class CoursePlayControlService
     /**
      * 获取播放控制统计信息
      */
+    /**
+     * @return array<string, mixed>
+     */
     public function getPlayControlStatistics(): array
     {
         return $this->playControlRepository->getPlayControlStatistics();
     }
-} 
+
+    /**
+     * 查找或创建播放控制实体
+     */
+    private function findOrCreatePlayControl(Course $course): CoursePlayControl
+    {
+        $playControl = $this->playControlRepository->findByCourse($course);
+
+        if (null === $playControl) {
+            $playControl = new CoursePlayControl();
+            $playControl->setCourse($course);
+        }
+
+        return $playControl;
+    }
+
+    /**
+     * 应用播放控制配置
+     * @param array<string, mixed> $config
+     */
+    private function applyPlayControlConfig(CoursePlayControl $playControl, array $config): void
+    {
+        $this->applyBasicControls($playControl, $config);
+        $this->applyWatermarkConfig($playControl, $config);
+        $this->applyDeviceAndAuthConfig($playControl, $config);
+        $this->applyProgressConfig($playControl, $config);
+        $this->applyPermissionConfig($playControl, $config);
+        $this->applyExtendedConfig($playControl, $config);
+    }
+
+    /**
+     * 应用基础控制配置
+     * @param array<string, mixed> $config
+     */
+    private function applyBasicControls(CoursePlayControl $playControl, array $config): void
+    {
+        $playControl->setEnabled($this->getBoolConfig($config, 'enabled', true));
+        $playControl->setAllowFastForward($this->getBoolConfig($config, 'allow_fast_forward', false));
+        $playControl->setAllowSpeedControl($this->getBoolConfig($config, 'allow_speed_control', false));
+
+        $allowedSpeeds = $this->getArrayConfig($config, 'allowed_speeds', [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]);
+        /** @var array<float> $speeds */
+        $speeds = array_values(array_filter($allowedSpeeds, function ($item): bool {
+            return is_float($item) || is_int($item);
+        }));
+
+        $playControl->setAllowedSpeeds($speeds);
+    }
+
+    /**
+     * 应用水印配置
+     * @param array<string, mixed> $config
+     */
+    private function applyWatermarkConfig(CoursePlayControl $playControl, array $config): void
+    {
+        $playControl->setEnableWatermark($this->getBoolConfig($config, 'enable_watermark', true));
+        $playControl->setWatermarkText($this->getStringOrNullConfig($config, 'watermark_text'));
+        $playControl->setWatermarkPosition($this->getStringConfig($config, 'watermark_position', 'bottom-right'));
+        $playControl->setWatermarkOpacity($this->getIntConfig($config, 'watermark_opacity', 50));
+    }
+
+    /**
+     * 应用设备和认证配置
+     * @param array<string, mixed> $config
+     */
+    private function applyDeviceAndAuthConfig(CoursePlayControl $playControl, array $config): void
+    {
+        $playControl->setMaxDeviceCount($this->getIntConfig($config, 'max_device_count', 3));
+        $playControl->setPlayAuthDuration($this->getIntConfig($config, 'play_auth_duration', 3600));
+    }
+
+    /**
+     * 应用进度配置
+     * @param array<string, mixed> $config
+     */
+    private function applyProgressConfig(CoursePlayControl $playControl, array $config): void
+    {
+        $playControl->setEnableResume($this->getBoolConfig($config, 'enable_resume', true));
+        $playControl->setMinWatchDuration($this->getIntOrNullConfig($config, 'min_watch_duration'));
+        $playControl->setProgressCheckInterval($this->getIntConfig($config, 'progress_check_interval', 30));
+    }
+
+    /**
+     * 应用权限配置
+     * @param array<string, mixed> $config
+     */
+    private function applyPermissionConfig(CoursePlayControl $playControl, array $config): void
+    {
+        $playControl->setAllowSeeking($this->getBoolConfig($config, 'allow_seeking', false));
+        $playControl->setAllowContextMenu($this->getBoolConfig($config, 'allow_context_menu', false));
+        $playControl->setAllowDownload($this->getBoolConfig($config, 'allow_download', false));
+    }
+
+    /**
+     * 应用扩展配置
+     * @param array<string, mixed> $config
+     */
+    private function applyExtendedConfig(CoursePlayControl $playControl, array $config): void
+    {
+        $extendedConfig = $this->getArrayOrNullConfig($config, 'extended_config');
+
+        if (null !== $extendedConfig) {
+            /** @var array<string, mixed> $typedConfig */
+            $typedConfig = $extendedConfig;
+            $playControl->setExtendedConfig($typedConfig);
+        } else {
+            $playControl->setExtendedConfig(null);
+        }
+    }
+
+    /**
+     * 保存播放控制实体
+     */
+    private function savePlayControl(CoursePlayControl $playControl): void
+    {
+        $this->entityManager->persist($playControl);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * 获取布尔配置值
+     * @param array<string, mixed> $config
+     */
+    private function getBoolConfig(array $config, string $key, bool $default): bool
+    {
+        $value = $config[$key] ?? $default;
+
+        return is_bool($value) ? $value : $default;
+    }
+
+    /**
+     * 获取整数配置值
+     * @param array<string, mixed> $config
+     */
+    private function getIntConfig(array $config, string $key, int $default): int
+    {
+        $value = $config[$key] ?? $default;
+
+        return is_int($value) ? $value : $default;
+    }
+
+    /**
+     * 获取可空整数配置值
+     * @param array<string, mixed> $config
+     */
+    private function getIntOrNullConfig(array $config, string $key): ?int
+    {
+        $value = $config[$key] ?? null;
+
+        return is_int($value) ? $value : null;
+    }
+
+    /**
+     * 获取字符串配置值
+     * @param array<string, mixed> $config
+     */
+    private function getStringConfig(array $config, string $key, string $default): string
+    {
+        $value = $config[$key] ?? $default;
+
+        return is_string($value) ? $value : $default;
+    }
+
+    /**
+     * 获取可空字符串配置值
+     * @param array<string, mixed> $config
+     */
+    private function getStringOrNullConfig(array $config, string $key): ?string
+    {
+        $value = $config[$key] ?? null;
+
+        return is_string($value) ? $value : null;
+    }
+
+    /**
+     * 获取数组配置值
+     * @param array<string, mixed> $config
+     * @param array<mixed> $default
+     * @return array<mixed>
+     */
+    private function getArrayConfig(array $config, string $key, array $default): array
+    {
+        $value = $config[$key] ?? $default;
+
+        return is_array($value) ? $value : $default;
+    }
+
+    /**
+     * 获取可空数组配置值
+     * @param array<string, mixed> $config
+     * @return array<mixed>|null
+     */
+    private function getArrayOrNullConfig(array $config, string $key): ?array
+    {
+        $value = $config[$key] ?? null;
+
+        return is_array($value) ? $value : null;
+    }
+}

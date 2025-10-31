@@ -4,17 +4,16 @@ namespace Tourze\TrainCourseBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\CourseVersion;
 
 /**
  * 课程版本仓储
  *
- * @method CourseVersion|null find($id, $lockMode = null, $lockVersion = null)
- * @method CourseVersion|null findOneBy(array $criteria, array $orderBy = null)
- * @method CourseVersion[]    findAll()
- * @method CourseVersion[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @extends ServiceEntityRepository<CourseVersion>
  */
+#[AsRepository(entityClass: CourseVersion::class)]
 class CourseVersionRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -24,15 +23,21 @@ class CourseVersionRepository extends ServiceEntityRepository
 
     /**
      * 根据课程查找版本
+     *
+     * @return CourseVersion[]
+     * @phpstan-return list<CourseVersion>
      */
     public function findByCourse(Course $course): array
     {
+        /** @var list<CourseVersion> */
+
         return $this->createQueryBuilder('cv')
             ->where('cv.course = :course')
             ->setParameter('course', $course)
             ->orderBy('cv.createTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
@@ -40,20 +45,30 @@ class CourseVersionRepository extends ServiceEntityRepository
      */
     public function findCurrentByCourse(Course $course): ?CourseVersion
     {
-        return $this->createQueryBuilder('cv')
+        $result = $this->createQueryBuilder('cv')
             ->where('cv.course = :course')
             ->andWhere('cv.isCurrent = :isCurrent')
             ->setParameter('course', $course)
             ->setParameter('isCurrent', true)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
+
+        assert($result instanceof CourseVersion || null === $result);
+
+        return $result;
     }
 
     /**
      * 查找已发布的版本
+     *
+     * @return CourseVersion[]
+     * @phpstan-return list<CourseVersion>
      */
     public function findPublishedByCourse(Course $course): array
     {
+        /** @var list<CourseVersion> */
+
         return $this->createQueryBuilder('cv')
             ->where('cv.course = :course')
             ->andWhere('cv.status = :status')
@@ -61,7 +76,8 @@ class CourseVersionRepository extends ServiceEntityRepository
             ->setParameter('status', 'published')
             ->orderBy('cv.publishedAt', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
@@ -69,13 +85,18 @@ class CourseVersionRepository extends ServiceEntityRepository
      */
     public function findByVersion(Course $course, string $version): ?CourseVersion
     {
-        return $this->createQueryBuilder('cv')
+        $result = $this->createQueryBuilder('cv')
             ->where('cv.course = :course')
             ->andWhere('cv.version = :version')
             ->setParameter('course', $course)
             ->setParameter('version', $version)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
+
+        assert($result instanceof CourseVersion || null === $result);
+
+        return $result;
     }
 
     /**
@@ -83,57 +104,77 @@ class CourseVersionRepository extends ServiceEntityRepository
      */
     public function findLatestByCourse(Course $course): ?CourseVersion
     {
-        return $this->createQueryBuilder('cv')
+        $result = $this->createQueryBuilder('cv')
             ->where('cv.course = :course')
+            ->setParameter('course', $course)
             ->orderBy('cv.createTime', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
+
+        assert($result instanceof CourseVersion || null === $result);
+
+        return $result;
     }
 
     /**
      * 根据状态查找版本
+     *
+     * @return CourseVersion[]
+     * @phpstan-return list<CourseVersion>
      */
     public function findByStatus(string $status, ?Course $course = null): array
     {
         $qb = $this->createQueryBuilder('cv')
             ->where('cv.status = :status')
-            ->setParameter('status', $status);
+            ->setParameter('status', $status)
+        ;
 
         if ((bool) $course) {
             $qb->andWhere('cv.course = :course')
-               ->setParameter('course', $course);
+                ->setParameter('course', $course)
+            ;
         }
 
+        /** @var list<CourseVersion> */
+
         return $qb->orderBy('cv.createTime', 'DESC')
-                  ->getQuery()
-                  ->getResult();
+            ->getQuery()
+            ->getResult()
+        ;
     }
 
     /**
      * 获取版本统计信息
+     *
+     * @return array{total_versions: int, published_versions: int, draft_versions: int, archived_versions: int}
      */
     public function getVersionStatistics(Course $course): array
     {
         $qb = $this->createQueryBuilder('cv')
             ->where('cv.course = :course')
-            ->setParameter('course', $course);
+            ->setParameter('course', $course)
+        ;
 
-        $totalVersions = $qb->select('COUNT(cv.id)')
+        $totalVersions = (int) $qb->select('COUNT(cv.id)')
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
-        $publishedVersions = $qb->select('COUNT(cv.id)')
+        $publishedVersions = (int) $qb->select('COUNT(cv.id)')
             ->andWhere('cv.status = :status')
             ->setParameter('status', 'published')
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
-        $draftVersions = $qb->select('COUNT(cv.id)')
+        $draftVersions = (int) $qb->select('COUNT(cv.id)')
             ->andWhere('cv.status = :status')
             ->setParameter('status', 'draft')
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
         return [
             'total_versions' => $totalVersions,
@@ -145,28 +186,41 @@ class CourseVersionRepository extends ServiceEntityRepository
 
     /**
      * 搜索版本
+     *
+     * @return CourseVersion[]
+     * @phpstan-return list<CourseVersion>
      */
     public function searchVersions(string $keyword, ?Course $course = null): array
     {
         $qb = $this->createQueryBuilder('cv')
             ->where('cv.version LIKE :keyword OR cv.title LIKE :keyword OR cv.description LIKE :keyword')
-            ->setParameter('keyword', '%' . $keyword . '%');
+            ->setParameter('keyword', '%' . $keyword . '%')
+        ;
 
         if ((bool) $course) {
             $qb->andWhere('cv.course = :course')
-               ->setParameter('course', $course);
+                ->setParameter('course', $course)
+            ;
         }
 
+        /** @var list<CourseVersion> */
+
         return $qb->orderBy('cv.createTime', 'DESC')
-                  ->getQuery()
-                  ->getResult();
+            ->getQuery()
+            ->getResult()
+        ;
     }
 
     /**
      * 查找需要归档的版本（超过指定数量的旧版本）
+     *
+     * @return CourseVersion[]
+     * @phpstan-return list<CourseVersion>
      */
     public function findVersionsToArchive(Course $course, int $keepCount = 10): array
     {
+        /** @var list<CourseVersion> */
+
         return $this->createQueryBuilder('cv')
             ->where('cv.course = :course')
             ->andWhere('cv.isCurrent = :isCurrent')
@@ -177,19 +231,24 @@ class CourseVersionRepository extends ServiceEntityRepository
             ->orderBy('cv.createTime', 'DESC')
             ->setFirstResult($keepCount)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 查找旧版本（超过指定天数的版本）
      *
      * @param int $days 天数
+     *
      * @return CourseVersion[]
+     * @phpstan-return list<CourseVersion>
      */
     public function findOldVersions(int $days): array
     {
         $date = new \DateTime();
         $date->modify("-{$days} days");
+
+        /** @var list<CourseVersion> */
 
         return $this->createQueryBuilder('cv')
             ->where('cv.createTime < :date')
@@ -198,6 +257,25 @@ class CourseVersionRepository extends ServiceEntityRepository
             ->setParameter('isCurrent', false)
             ->orderBy('cv.createTime', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
-} 
+
+    public function save(CourseVersion $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(CourseVersion $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+}

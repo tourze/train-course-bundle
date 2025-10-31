@@ -4,11 +4,11 @@ namespace Tourze\TrainCourseBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Stringable;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\CollectRepository;
-use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
 /**
  * 课程收藏实体
@@ -19,14 +19,15 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 #[ORM\Entity(repositoryClass: CollectRepository::class)]
 #[ORM\Table(name: 'train_course_collect', options: ['comment' => '课程收藏'])]
 #[ORM\UniqueConstraint(name: 'unique_user_course', columns: ['user_id', 'course_id'])]
-class Collect implements Stringable
+class Collect implements \Stringable
 {
     use SnowflakeKeyAware;
-    use TimestampableTrait;
+    use TimestampableAware;
     use BlameableAware;
 
-
     #[ORM\Column(type: Types::STRING, nullable: false, options: ['comment' => '用户ID'])]
+    #[Assert\NotBlank(message: '用户ID不能为空')]
+    #[Assert\Length(max: 50, maxMessage: '用户ID长度不能超过 {{ limit }} 个字符')]
     private ?string $userId = null;
 
     #[ORM\ManyToOne(targetEntity: Course::class)]
@@ -34,54 +35,42 @@ class Collect implements Stringable
     private ?Course $course = null;
 
     #[ORM\Column(type: Types::STRING, length: 20, nullable: false, options: ['comment' => '收藏状态', 'default' => 'active'])]
+    #[Assert\NotBlank(message: '收藏状态不能为空')]
+    #[Assert\Length(max: 20, maxMessage: '收藏状态长度不能超过 {{ limit }} 个字符')]
+    #[Assert\Choice(choices: ['active', 'cancelled', 'hidden'], message: '收藏状态必须是: {{ choices }}')]
     private string $status = 'active';
 
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '收藏分组'])]
+    #[Assert\Length(max: 100, maxMessage: '收藏分组名称长度不能超过 {{ limit }} 个字符')]
     private ?string $collectGroup = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '收藏备注'])]
+    #[Assert\Length(max: 65535, maxMessage: '收藏备注长度不能超过 {{ limit }} 个字符')]
     private ?string $note = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '排序号', 'default' => 0])]
+    #[Assert\PositiveOrZero(message: '排序号必须大于或等于0')]
     private int $sortNumber = 0;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否置顶', 'default' => false])]
+    #[Assert\Type(type: 'bool', message: '置顶状态必须是布尔值')]
     private bool $isTop = false;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '扩展属性'])]
+    #[Assert\Type(type: 'array', message: '扩展属性必须是数组类型')]
     private ?array $metadata = null;
-
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
-    }
 
     public function getUserId(): ?string
     {
         return $this->userId;
     }
 
-    public function setUserId(string $userId): static
+    public function setUserId(string $userId): void
     {
         $this->userId = $userId;
-        return $this;
     }
 
     public function getCourse(): ?Course
@@ -89,10 +78,9 @@ class Collect implements Stringable
         return $this->course;
     }
 
-    public function setCourse(?Course $course): static
+    public function setCourse(?Course $course): void
     {
         $this->course = $course;
-        return $this;
     }
 
     public function getStatus(): string
@@ -100,10 +88,9 @@ class Collect implements Stringable
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(string $status): void
     {
         $this->status = $status;
-        return $this;
     }
 
     public function getCollectGroup(): ?string
@@ -111,10 +98,9 @@ class Collect implements Stringable
         return $this->collectGroup;
     }
 
-    public function setCollectGroup(?string $collectGroup): static
+    public function setCollectGroup(?string $collectGroup): void
     {
         $this->collectGroup = $collectGroup;
-        return $this;
     }
 
     public function getNote(): ?string
@@ -122,10 +108,9 @@ class Collect implements Stringable
         return $this->note;
     }
 
-    public function setNote(?string $note): static
+    public function setNote(?string $note): void
     {
         $this->note = $note;
-        return $this;
     }
 
     public function getSortNumber(): int
@@ -133,10 +118,9 @@ class Collect implements Stringable
         return $this->sortNumber;
     }
 
-    public function setSortNumber(int $sortNumber): static
+    public function setSortNumber(int $sortNumber): void
     {
         $this->sortNumber = $sortNumber;
-        return $this;
     }
 
     public function isIsTop(): bool
@@ -144,21 +128,21 @@ class Collect implements Stringable
         return $this->isTop;
     }
 
-    public function setIsTop(bool $isTop): static
+    public function setIsTop(bool $isTop): void
     {
         $this->isTop = $isTop;
-        return $this;
     }
 
+    /** @return array<string, mixed>|null */
     public function getMetadata(): ?array
     {
         return $this->metadata;
     }
 
-    public function setMetadata(?array $metadata): static
+    /** @param array<string, mixed>|null $metadata */
+    public function setMetadata(?array $metadata): void
     {
         $this->metadata = $metadata;
-        return $this;
     }
 
     /**
@@ -166,7 +150,7 @@ class Collect implements Stringable
      */
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return 'active' === $this->status;
     }
 
     /**
@@ -186,4 +170,4 @@ class Collect implements Stringable
     {
         return (string) $this->id;
     }
-} 
+}

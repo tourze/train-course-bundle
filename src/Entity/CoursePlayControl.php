@@ -4,11 +4,11 @@ namespace Tourze\TrainCourseBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Stringable;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\TrainCourseBundle\Repository\CoursePlayControlRepository;
-use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
 
 /**
  * 课程播放控制实体
@@ -18,62 +18,95 @@ use Tourze\TrainCourseBundle\Trait\TimestampableTrait;
  */
 #[ORM\Entity(repositoryClass: CoursePlayControlRepository::class)]
 #[ORM\Table(name: 'train_course_play_control', options: ['comment' => '课程播放控制'])]
-class CoursePlayControl implements Stringable
+class CoursePlayControl implements \Stringable
 {
     use SnowflakeKeyAware;
-    use TimestampableTrait;
+    use TimestampableAware;
     use BlameableAware;
-
 
     #[ORM\OneToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', options: ['comment' => '关联课程'])]
     private ?Course $course = null;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否启用控制', 'default' => true])]
+    #[Assert\NotNull]
     private bool $enabled = true;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否允许快进', 'default' => false])]
+    #[Assert\NotNull]
     private bool $allowFastForward = false;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否允许倍速控制', 'default' => false])]
+    #[Assert\NotNull]
     private bool $allowSpeedControl = false;
 
+    /**
+     * @var array<float>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '允许的播放倍速'])]
+    #[Assert\Type(type: 'array')]
     private ?array $allowedSpeeds = null;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否启用水印', 'default' => true])]
+    #[Assert\NotNull]
     private bool $enableWatermark = true;
 
     #[ORM\Column(length: 200, nullable: true, options: ['comment' => '水印文本'])]
+    #[Assert\Length(max: 200)]
     private ?string $watermarkText = null;
 
     #[ORM\Column(length: 50, nullable: true, options: ['comment' => '水印位置'])]
+    #[Assert\Length(max: 50)]
     private ?string $watermarkPosition = 'bottom-right';
 
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '水印透明度（0-100）'])]
+    #[Assert\Range(min: 0, max: 100)]
     private ?int $watermarkOpacity = 50;
 
+    #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '最大设备数', 'default' => 3])]
+    #[Assert\PositiveOrZero]
     private int $maxDeviceCount = 3;
 
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['comment' => '播放凭证有效期（秒）', 'default' => 3600])]
+    #[Assert\PositiveOrZero]
     private int $playAuthDuration = 3600;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否启用续播', 'default' => true])]
+    #[Assert\NotNull]
     private bool $enableResume = true;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '最小观看时长（秒）'])]
+    #[Assert\PositiveOrZero]
     private ?int $minWatchDuration = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '观看进度检查间隔（秒）'])]
+    #[Assert\PositiveOrZero]
     private ?int $progressCheckInterval = 30;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否允许拖拽', 'default' => false])]
+    #[Assert\NotNull]
     private bool $allowSeeking = false;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否启用右键菜单', 'default' => false])]
+    #[Assert\NotNull]
     private bool $allowContextMenu = false;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['comment' => '是否允许下载', 'default' => false])]
+    #[Assert\NotNull]
     private bool $allowDownload = false;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '扩展配置'])]
+    #[Assert\Type(type: 'array')]
     private ?array $extendedConfig = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '扩展属性'])]
+    #[Assert\Type(type: 'array')]
     private ?array $metadata = null;
 
     public function getCourse(): ?Course
@@ -81,10 +114,9 @@ class CoursePlayControl implements Stringable
         return $this->course;
     }
 
-    public function setCourse(?Course $course): static
+    public function setCourse(?Course $course): void
     {
         $this->course = $course;
-        return $this;
     }
 
     public function isEnabled(): bool
@@ -92,10 +124,9 @@ class CoursePlayControl implements Stringable
         return $this->enabled;
     }
 
-    public function setEnabled(bool $enabled): static
+    public function setEnabled(bool $enabled): void
     {
         $this->enabled = $enabled;
-        return $this;
     }
 
     public function isAllowFastForward(): bool
@@ -103,10 +134,9 @@ class CoursePlayControl implements Stringable
         return $this->allowFastForward;
     }
 
-    public function setAllowFastForward(bool $allowFastForward): static
+    public function setAllowFastForward(bool $allowFastForward): void
     {
         $this->allowFastForward = $allowFastForward;
-        return $this;
     }
 
     public function isAllowSpeedControl(): bool
@@ -114,21 +144,21 @@ class CoursePlayControl implements Stringable
         return $this->allowSpeedControl;
     }
 
-    public function setAllowSpeedControl(bool $allowSpeedControl): static
+    public function setAllowSpeedControl(bool $allowSpeedControl): void
     {
         $this->allowSpeedControl = $allowSpeedControl;
-        return $this;
     }
 
+    /** @return array<float>|null */
     public function getAllowedSpeeds(): ?array
     {
         return $this->allowedSpeeds;
     }
 
-    public function setAllowedSpeeds(?array $allowedSpeeds): static
+    /** @param array<float>|null $allowedSpeeds */
+    public function setAllowedSpeeds(?array $allowedSpeeds): void
     {
         $this->allowedSpeeds = $allowedSpeeds;
-        return $this;
     }
 
     public function isEnableWatermark(): bool
@@ -136,10 +166,9 @@ class CoursePlayControl implements Stringable
         return $this->enableWatermark;
     }
 
-    public function setEnableWatermark(bool $enableWatermark): static
+    public function setEnableWatermark(bool $enableWatermark): void
     {
         $this->enableWatermark = $enableWatermark;
-        return $this;
     }
 
     public function getWatermarkText(): ?string
@@ -147,10 +176,9 @@ class CoursePlayControl implements Stringable
         return $this->watermarkText;
     }
 
-    public function setWatermarkText(?string $watermarkText): static
+    public function setWatermarkText(?string $watermarkText): void
     {
         $this->watermarkText = $watermarkText;
-        return $this;
     }
 
     public function getWatermarkPosition(): ?string
@@ -158,10 +186,9 @@ class CoursePlayControl implements Stringable
         return $this->watermarkPosition;
     }
 
-    public function setWatermarkPosition(?string $watermarkPosition): static
+    public function setWatermarkPosition(?string $watermarkPosition): void
     {
         $this->watermarkPosition = $watermarkPosition;
-        return $this;
     }
 
     public function getWatermarkOpacity(): ?int
@@ -169,10 +196,9 @@ class CoursePlayControl implements Stringable
         return $this->watermarkOpacity;
     }
 
-    public function setWatermarkOpacity(?int $watermarkOpacity): static
+    public function setWatermarkOpacity(?int $watermarkOpacity): void
     {
         $this->watermarkOpacity = $watermarkOpacity;
-        return $this;
     }
 
     public function getMaxDeviceCount(): int
@@ -180,10 +206,9 @@ class CoursePlayControl implements Stringable
         return $this->maxDeviceCount;
     }
 
-    public function setMaxDeviceCount(int $maxDeviceCount): static
+    public function setMaxDeviceCount(int $maxDeviceCount): void
     {
         $this->maxDeviceCount = $maxDeviceCount;
-        return $this;
     }
 
     public function getPlayAuthDuration(): int
@@ -191,10 +216,9 @@ class CoursePlayControl implements Stringable
         return $this->playAuthDuration;
     }
 
-    public function setPlayAuthDuration(int $playAuthDuration): static
+    public function setPlayAuthDuration(int $playAuthDuration): void
     {
         $this->playAuthDuration = $playAuthDuration;
-        return $this;
     }
 
     public function isEnableResume(): bool
@@ -202,10 +226,9 @@ class CoursePlayControl implements Stringable
         return $this->enableResume;
     }
 
-    public function setEnableResume(bool $enableResume): static
+    public function setEnableResume(bool $enableResume): void
     {
         $this->enableResume = $enableResume;
-        return $this;
     }
 
     public function getMinWatchDuration(): ?int
@@ -213,10 +236,9 @@ class CoursePlayControl implements Stringable
         return $this->minWatchDuration;
     }
 
-    public function setMinWatchDuration(?int $minWatchDuration): static
+    public function setMinWatchDuration(?int $minWatchDuration): void
     {
         $this->minWatchDuration = $minWatchDuration;
-        return $this;
     }
 
     public function getProgressCheckInterval(): ?int
@@ -224,10 +246,9 @@ class CoursePlayControl implements Stringable
         return $this->progressCheckInterval;
     }
 
-    public function setProgressCheckInterval(?int $progressCheckInterval): static
+    public function setProgressCheckInterval(?int $progressCheckInterval): void
     {
         $this->progressCheckInterval = $progressCheckInterval;
-        return $this;
     }
 
     public function isAllowSeeking(): bool
@@ -235,10 +256,9 @@ class CoursePlayControl implements Stringable
         return $this->allowSeeking;
     }
 
-    public function setAllowSeeking(bool $allowSeeking): static
+    public function setAllowSeeking(bool $allowSeeking): void
     {
         $this->allowSeeking = $allowSeeking;
-        return $this;
     }
 
     public function isAllowContextMenu(): bool
@@ -246,10 +266,9 @@ class CoursePlayControl implements Stringable
         return $this->allowContextMenu;
     }
 
-    public function setAllowContextMenu(bool $allowContextMenu): static
+    public function setAllowContextMenu(bool $allowContextMenu): void
     {
         $this->allowContextMenu = $allowContextMenu;
-        return $this;
     }
 
     public function isAllowDownload(): bool
@@ -257,37 +276,39 @@ class CoursePlayControl implements Stringable
         return $this->allowDownload;
     }
 
-    public function setAllowDownload(bool $allowDownload): static
+    public function setAllowDownload(bool $allowDownload): void
     {
         $this->allowDownload = $allowDownload;
-        return $this;
     }
 
+    /** @return array<string, mixed>|null */
     public function getExtendedConfig(): ?array
     {
         return $this->extendedConfig;
     }
 
-    public function setExtendedConfig(?array $extendedConfig): static
+    /** @param array<string, mixed>|null $extendedConfig */
+    public function setExtendedConfig(?array $extendedConfig): void
     {
         $this->extendedConfig = $extendedConfig;
-        return $this;
     }
 
+    /** @return array<string, mixed>|null */
     public function getMetadata(): ?array
     {
         return $this->metadata;
     }
 
-    public function setMetadata(?array $metadata): static
+    /** @param array<string, mixed>|null $metadata */
+    public function setMetadata(?array $metadata): void
     {
         $this->metadata = $metadata;
-        return $this;
     }
 
     /**
      * 获取播放控制配置
      */
+    /** @return array<string, mixed> */
     public function getPlayControlConfig(): array
     {
         return [
@@ -324,6 +345,7 @@ class CoursePlayControl implements Stringable
     /**
      * 获取水印配置
      */
+    /** @return array<string, mixed> */
     public function getWatermarkConfig(): array
     {
         if (!$this->isEnableWatermark()) {
@@ -342,4 +364,4 @@ class CoursePlayControl implements Stringable
     {
         return (string) $this->id;
     }
-} 
+}

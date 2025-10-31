@@ -1,329 +1,342 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainCourseBundle\Tests\Entity;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\CoursePlayControl;
 
 /**
  * CoursePlayControl 实体单元测试
+ *
+ * @internal
  */
-class CoursePlayControlTest extends TestCase
+#[CoversClass(CoursePlayControl::class)]
+final class CoursePlayControlTest extends AbstractEntityTestCase
 {
+    protected function createEntity(): object
+    {
+        return new CoursePlayControl();
+    }
+
+    /**
+     * @return iterable<string, array{string, mixed}>
+     */
+    public static function propertiesProvider(): iterable
+    {
+        return [
+            'enabled' => ['enabled', true],
+            'allowFastForward' => ['allowFastForward', true],
+            'allowSpeedControl' => ['allowSpeedControl', true],
+            'enableWatermark' => ['enableWatermark', true],
+            'maxDeviceCount' => ['maxDeviceCount', 123],
+            'playAuthDuration' => ['playAuthDuration', 123],
+            'enableResume' => ['enableResume', true],
+            'allowSeeking' => ['allowSeeking', true],
+            'allowContextMenu' => ['allowContextMenu', true],
+            'allowDownload' => ['allowDownload', true],
+        ];
+    }
+
     private CoursePlayControl $playControl;
 
     protected function setUp(): void
     {
+        parent::setUp();
+
+        // 单元测试设置
         $this->playControl = new CoursePlayControl();
     }
 
-    public function test_getId_returnsNullByDefault(): void
+    public function testGetIdReturnsNullByDefault(): void
     {
         $this->assertNull($this->playControl->getId());
     }
 
-    public function test_setAndGetCreatedBy_worksCorrectly(): void
+    public function testSetAndGetCreatedByWorksCorrectly(): void
     {
         $createdBy = 'user123';
-        $result = $this->playControl->setCreatedBy($createdBy);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setCreatedBy($createdBy);
+
         $this->assertSame($createdBy, $this->playControl->getCreatedBy());
     }
 
-    public function test_setAndGetUpdatedBy_worksCorrectly(): void
+    public function testSetAndGetUpdatedByWorksCorrectly(): void
     {
         $updatedBy = 'user456';
-        $result = $this->playControl->setUpdatedBy($updatedBy);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setUpdatedBy($updatedBy);
+
         $this->assertSame($updatedBy, $this->playControl->getUpdatedBy());
     }
 
-    public function test_setAndGetCourse_worksCorrectly(): void
+    public function testSetAndGetCourseWorksCorrectly(): void
     {
         $course = new Course();
-        $result = $this->playControl->setCourse($course);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setCourse($course);
+
         $this->assertSame($course, $this->playControl->getCourse());
     }
 
-    public function test_getCourse_returnsNullByDefault(): void
+    public function testGetCourseReturnsNullByDefault(): void
     {
         $this->assertNull($this->playControl->getCourse());
     }
 
-    public function test_setAndGetEnabled_worksCorrectly(): void
+    public function testSetAndGetEnabledWorksCorrectly(): void
     {
-        $result = $this->playControl->setEnabled(false);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setEnabled(false);
+
         $this->assertFalse($this->playControl->isEnabled());
-        
+
         $this->playControl->setEnabled(true);
         $this->assertTrue($this->playControl->isEnabled());
     }
 
-    public function test_isEnabled_hasDefaultValue(): void
+    public function testIsEnabledHasDefaultValue(): void
     {
         $this->assertTrue($this->playControl->isEnabled());
     }
 
-    public function test_setAndGetAllowFastForward_worksCorrectly(): void
+    public function testSetAndGetAllowFastForwardWorksCorrectly(): void
     {
-        $result = $this->playControl->setAllowFastForward(true);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setAllowFastForward(true);
+
         $this->assertTrue($this->playControl->isAllowFastForward());
-        
+
         $this->playControl->setAllowFastForward(false);
         $this->assertFalse($this->playControl->isAllowFastForward());
     }
 
-    public function test_isAllowFastForward_hasDefaultValue(): void
+    public function testIsAllowFastForwardHasDefaultValue(): void
     {
         $this->assertFalse($this->playControl->isAllowFastForward());
     }
 
-    public function test_setAndGetAllowSpeedControl_worksCorrectly(): void
+    public function testSetAndGetAllowSpeedControlWorksCorrectly(): void
     {
-        $result = $this->playControl->setAllowSpeedControl(true);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setAllowSpeedControl(true);
+
         $this->assertTrue($this->playControl->isAllowSpeedControl());
-        
+
         $this->playControl->setAllowSpeedControl(false);
         $this->assertFalse($this->playControl->isAllowSpeedControl());
     }
 
-    public function test_isAllowSpeedControl_hasDefaultValue(): void
+    public function testIsAllowSpeedControlHasDefaultValue(): void
     {
         $this->assertFalse($this->playControl->isAllowSpeedControl());
     }
 
-    public function test_setAndGetAllowedSpeeds_worksCorrectly(): void
+    public function testSetAndGetAllowedSpeedsWorksCorrectly(): void
     {
         $speeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
-        $result = $this->playControl->setAllowedSpeeds($speeds);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setAllowedSpeeds($speeds);
+
         $this->assertSame($speeds, $this->playControl->getAllowedSpeeds());
     }
 
-    public function test_getAllowedSpeeds_returnsNullByDefault(): void
+    public function testGetAllowedSpeedsReturnsNullByDefault(): void
     {
         $this->assertNull($this->playControl->getAllowedSpeeds());
     }
 
-    public function test_setAndGetEnableWatermark_worksCorrectly(): void
+    public function testSetAndGetEnableWatermarkWorksCorrectly(): void
     {
-        $result = $this->playControl->setEnableWatermark(false);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setEnableWatermark(false);
+
         $this->assertFalse($this->playControl->isEnableWatermark());
-        
+
         $this->playControl->setEnableWatermark(true);
         $this->assertTrue($this->playControl->isEnableWatermark());
     }
 
-    public function test_isEnableWatermark_hasDefaultValue(): void
+    public function testIsEnableWatermarkHasDefaultValue(): void
     {
         $this->assertTrue($this->playControl->isEnableWatermark());
     }
 
-    public function test_setAndGetWatermarkText_worksCorrectly(): void
+    public function testSetAndGetWatermarkTextWorksCorrectly(): void
     {
         $watermarkText = '安全培训专用';
-        $result = $this->playControl->setWatermarkText($watermarkText);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setWatermarkText($watermarkText);
+
         $this->assertSame($watermarkText, $this->playControl->getWatermarkText());
     }
 
-    public function test_getWatermarkText_returnsNullByDefault(): void
+    public function testGetWatermarkTextReturnsNullByDefault(): void
     {
         $this->assertNull($this->playControl->getWatermarkText());
     }
 
-    public function test_setAndGetWatermarkPosition_worksCorrectly(): void
+    public function testSetAndGetWatermarkPositionWorksCorrectly(): void
     {
         $position = 'top-left';
-        $result = $this->playControl->setWatermarkPosition($position);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setWatermarkPosition($position);
+
         $this->assertSame($position, $this->playControl->getWatermarkPosition());
     }
 
-    public function test_getWatermarkPosition_hasDefaultValue(): void
+    public function testGetWatermarkPositionHasDefaultValue(): void
     {
         $this->assertSame('bottom-right', $this->playControl->getWatermarkPosition());
     }
 
-    public function test_setAndGetWatermarkOpacity_worksCorrectly(): void
+    public function testSetAndGetWatermarkOpacityWorksCorrectly(): void
     {
         $opacity = 80;
-        $result = $this->playControl->setWatermarkOpacity($opacity);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setWatermarkOpacity($opacity);
+
         $this->assertSame($opacity, $this->playControl->getWatermarkOpacity());
     }
 
-    public function test_getWatermarkOpacity_hasDefaultValue(): void
+    public function testGetWatermarkOpacityHasDefaultValue(): void
     {
         $this->assertSame(50, $this->playControl->getWatermarkOpacity());
     }
 
-    public function test_setAndGetMaxDeviceCount_worksCorrectly(): void
+    public function testSetAndGetMaxDeviceCountWorksCorrectly(): void
     {
         $maxDeviceCount = 5;
-        $result = $this->playControl->setMaxDeviceCount($maxDeviceCount);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setMaxDeviceCount($maxDeviceCount);
+
         $this->assertSame($maxDeviceCount, $this->playControl->getMaxDeviceCount());
     }
 
-    public function test_getMaxDeviceCount_hasDefaultValue(): void
+    public function testGetMaxDeviceCountHasDefaultValue(): void
     {
         $this->assertSame(3, $this->playControl->getMaxDeviceCount());
     }
 
-    public function test_setAndGetPlayAuthDuration_worksCorrectly(): void
+    public function testSetAndGetPlayAuthDurationWorksCorrectly(): void
     {
         $duration = 7200; // 2小时
-        $result = $this->playControl->setPlayAuthDuration($duration);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setPlayAuthDuration($duration);
+
         $this->assertSame($duration, $this->playControl->getPlayAuthDuration());
     }
 
-    public function test_getPlayAuthDuration_hasDefaultValue(): void
+    public function testGetPlayAuthDurationHasDefaultValue(): void
     {
         $this->assertSame(3600, $this->playControl->getPlayAuthDuration());
     }
 
-    public function test_setAndGetEnableResume_worksCorrectly(): void
+    public function testSetAndGetEnableResumeWorksCorrectly(): void
     {
-        $result = $this->playControl->setEnableResume(false);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setEnableResume(false);
+
         $this->assertFalse($this->playControl->isEnableResume());
-        
+
         $this->playControl->setEnableResume(true);
         $this->assertTrue($this->playControl->isEnableResume());
     }
 
-    public function test_isEnableResume_hasDefaultValue(): void
+    public function testIsEnableResumeHasDefaultValue(): void
     {
         $this->assertTrue($this->playControl->isEnableResume());
     }
 
-    public function test_setAndGetMinWatchDuration_worksCorrectly(): void
+    public function testSetAndGetMinWatchDurationWorksCorrectly(): void
     {
         $duration = 1800; // 30分钟
-        $result = $this->playControl->setMinWatchDuration($duration);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setMinWatchDuration($duration);
+
         $this->assertSame($duration, $this->playControl->getMinWatchDuration());
     }
 
-    public function test_getMinWatchDuration_returnsNullByDefault(): void
+    public function testGetMinWatchDurationReturnsNullByDefault(): void
     {
         $this->assertNull($this->playControl->getMinWatchDuration());
     }
 
-    public function test_setAndGetProgressCheckInterval_worksCorrectly(): void
+    public function testSetAndGetProgressCheckIntervalWorksCorrectly(): void
     {
         $interval = 60; // 1分钟
-        $result = $this->playControl->setProgressCheckInterval($interval);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setProgressCheckInterval($interval);
+
         $this->assertSame($interval, $this->playControl->getProgressCheckInterval());
     }
 
-    public function test_getProgressCheckInterval_hasDefaultValue(): void
+    public function testGetProgressCheckIntervalHasDefaultValue(): void
     {
         $this->assertSame(30, $this->playControl->getProgressCheckInterval());
     }
 
-    public function test_setAndGetAllowSeeking_worksCorrectly(): void
+    public function testSetAndGetAllowSeekingWorksCorrectly(): void
     {
-        $result = $this->playControl->setAllowSeeking(true);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setAllowSeeking(true);
+
         $this->assertTrue($this->playControl->isAllowSeeking());
-        
+
         $this->playControl->setAllowSeeking(false);
         $this->assertFalse($this->playControl->isAllowSeeking());
     }
 
-    public function test_isAllowSeeking_hasDefaultValue(): void
+    public function testIsAllowSeekingHasDefaultValue(): void
     {
         $this->assertFalse($this->playControl->isAllowSeeking());
     }
 
-    public function test_setAndGetAllowContextMenu_worksCorrectly(): void
+    public function testSetAndGetAllowContextMenuWorksCorrectly(): void
     {
-        $result = $this->playControl->setAllowContextMenu(true);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setAllowContextMenu(true);
+
         $this->assertTrue($this->playControl->isAllowContextMenu());
-        
+
         $this->playControl->setAllowContextMenu(false);
         $this->assertFalse($this->playControl->isAllowContextMenu());
     }
 
-    public function test_isAllowContextMenu_hasDefaultValue(): void
+    public function testIsAllowContextMenuHasDefaultValue(): void
     {
         $this->assertFalse($this->playControl->isAllowContextMenu());
     }
 
-    public function test_setAndGetAllowDownload_worksCorrectly(): void
+    public function testSetAndGetAllowDownloadWorksCorrectly(): void
     {
-        $result = $this->playControl->setAllowDownload(true);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setAllowDownload(true);
+
         $this->assertTrue($this->playControl->isAllowDownload());
-        
+
         $this->playControl->setAllowDownload(false);
         $this->assertFalse($this->playControl->isAllowDownload());
     }
 
-    public function test_isAllowDownload_hasDefaultValue(): void
+    public function testIsAllowDownloadHasDefaultValue(): void
     {
         $this->assertFalse($this->playControl->isAllowDownload());
     }
 
-    public function test_setAndGetExtendedConfig_worksCorrectly(): void
+    public function testSetAndGetExtendedConfigWorksCorrectly(): void
     {
         $config = ['feature1' => true, 'feature2' => 'value'];
-        $result = $this->playControl->setExtendedConfig($config);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setExtendedConfig($config);
+
         $this->assertSame($config, $this->playControl->getExtendedConfig());
     }
 
-    public function test_getExtendedConfig_returnsNullByDefault(): void
+    public function testGetExtendedConfigReturnsNullByDefault(): void
     {
         $this->assertNull($this->playControl->getExtendedConfig());
     }
 
-    public function test_setAndGetMetadata_worksCorrectly(): void
+    public function testSetAndGetMetadataWorksCorrectly(): void
     {
         $metadata = ['version' => '1.0', 'config' => 'strict'];
-        $result = $this->playControl->setMetadata($metadata);
-        
-        $this->assertSame($this->playControl, $result);
+        $this->playControl->setMetadata($metadata);
+
         $this->assertSame($metadata, $this->playControl->getMetadata());
     }
 
-    public function test_getMetadata_returnsNullByDefault(): void
+    public function testGetMetadataReturnsNullByDefault(): void
     {
         $this->assertNull($this->playControl->getMetadata());
     }
 
-    public function test_defaultValues_areSetCorrectly(): void
+    public function testDefaultValuesAreSetCorrectly(): void
     {
         $this->assertTrue($this->playControl->isEnabled());
         $this->assertFalse($this->playControl->isAllowFastForward());
@@ -340,7 +353,7 @@ class CoursePlayControlTest extends TestCase
         $this->assertFalse($this->playControl->isAllowDownload());
     }
 
-    public function test_strictModeConfiguration_worksCorrectly(): void
+    public function testStrictModeConfigurationWorksCorrectly(): void
     {
         // 启用严格模式配置
         $this->playControl->setEnabled(true);
@@ -351,7 +364,7 @@ class CoursePlayControlTest extends TestCase
         $this->playControl->setAllowSeeking(false);
         $this->playControl->setAllowContextMenu(false);
         $this->playControl->setAllowDownload(false);
-        
+
         $this->assertTrue($this->playControl->isEnabled());
         $this->assertFalse($this->playControl->isAllowFastForward());
         $this->assertFalse($this->playControl->isAllowSpeedControl());
@@ -362,73 +375,89 @@ class CoursePlayControlTest extends TestCase
         $this->assertFalse($this->playControl->isAllowDownload());
     }
 
-    public function test_watermarkConfiguration_worksCorrectly(): void
+    public function testWatermarkConfigurationWorksCorrectly(): void
     {
         $this->playControl->setEnableWatermark(true);
         $this->playControl->setWatermarkText('培训专用 - 禁止传播');
         $this->playControl->setWatermarkPosition('center');
         $this->playControl->setWatermarkOpacity(80);
-        
+
         $this->assertTrue($this->playControl->isEnableWatermark());
         $this->assertSame('培训专用 - 禁止传播', $this->playControl->getWatermarkText());
         $this->assertSame('center', $this->playControl->getWatermarkPosition());
         $this->assertSame(80, $this->playControl->getWatermarkOpacity());
     }
 
-    public function test_speedControlConfiguration_worksCorrectly(): void
+    public function testSpeedControlConfigurationWorksCorrectly(): void
     {
         $this->playControl->setAllowSpeedControl(true);
         $this->playControl->setAllowedSpeeds([0.75, 1.0, 1.25, 1.5]);
-        
+
         $this->assertTrue($this->playControl->isAllowSpeedControl());
         $this->assertSame([0.75, 1.0, 1.25, 1.5], $this->playControl->getAllowedSpeeds());
     }
 
-    public function test_deviceAndAuthConfiguration_worksCorrectly(): void
+    public function testDeviceAndAuthConfigurationWorksCorrectly(): void
     {
         $this->playControl->setMaxDeviceCount(5);
         $this->playControl->setPlayAuthDuration(7200);
         $this->playControl->setEnableResume(true);
-        
+
         $this->assertSame(5, $this->playControl->getMaxDeviceCount());
         $this->assertSame(7200, $this->playControl->getPlayAuthDuration());
         $this->assertTrue($this->playControl->isEnableResume());
     }
 
-    public function test_progressTrackingConfiguration_worksCorrectly(): void
+    public function testProgressTrackingConfigurationWorksCorrectly(): void
     {
         $this->playControl->setMinWatchDuration(1800);
         $this->playControl->setProgressCheckInterval(60);
-        
+
         $this->assertSame(1800, $this->playControl->getMinWatchDuration());
         $this->assertSame(60, $this->playControl->getProgressCheckInterval());
     }
 
-    public function test_complexExtendedConfig_worksCorrectly(): void
+    public function testComplexExtendedConfigWorksCorrectly(): void
     {
         $config = [
             'security' => [
                 'prevent_screenshot' => true,
                 'prevent_recording' => true,
-                'face_detection' => true
+                'face_detection' => true,
             ],
             'analytics' => [
                 'track_mouse_movement' => true,
                 'track_focus_events' => true,
-                'detailed_progress' => true
+                'detailed_progress' => true,
             ],
             'ui' => [
                 'hide_controls' => false,
-                'custom_theme' => 'dark'
-            ]
+                'custom_theme' => 'dark',
+            ],
         ];
-        
+
         $this->playControl->setExtendedConfig($config);
         $result = $this->playControl->getExtendedConfig();
-        
+
         $this->assertSame($config, $result);
+
+        // 验证配置结构完整性
+        $this->assertArrayHasKey('security', $result);
+        $this->assertArrayHasKey('analytics', $result);
+        $this->assertArrayHasKey('ui', $result);
+
+        // 验证安全配置设置正确
         $this->assertTrue($result['security']['prevent_screenshot']);
+        $this->assertTrue($result['security']['prevent_recording']);
+        $this->assertTrue($result['security']['face_detection']);
+
+        // 验证分析配置设置正确
         $this->assertTrue($result['analytics']['track_mouse_movement']);
+        $this->assertTrue($result['analytics']['track_focus_events']);
+        $this->assertTrue($result['analytics']['detailed_progress']);
+
+        // 验证UI配置有效性
         $this->assertSame('dark', $result['ui']['custom_theme']);
+        $this->assertContains($result['ui']['custom_theme'], ['light', 'dark', 'auto']);
     }
-} 
+}

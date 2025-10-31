@@ -4,17 +4,16 @@ namespace Tourze\TrainCourseBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 use Tourze\TrainCourseBundle\Entity\Collect;
 use Tourze\TrainCourseBundle\Entity\Course;
 
 /**
  * 课程收藏仓储
  *
- * @method Collect|null find($id, $lockMode = null, $lockVersion = null)
- * @method Collect|null findOneBy(array $criteria, array $orderBy = null)
- * @method Collect[]    findAll()
- * @method Collect[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @extends ServiceEntityRepository<Collect>
  */
+#[AsRepository(entityClass: Collect::class)]
 class CollectRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -24,9 +23,12 @@ class CollectRepository extends ServiceEntityRepository
 
     /**
      * 根据用户查找收藏
+     * @return array<Collect>
+     * @phpstan-return list<Collect>
      */
     public function findByUser(string $userId): array
     {
+        /** @var list<Collect> */
         return $this->createQueryBuilder('c')
             ->where('c.userId = :userId')
             ->andWhere('c.status = :status')
@@ -36,14 +38,18 @@ class CollectRepository extends ServiceEntityRepository
             ->addOrderBy('c.sortNumber', 'DESC')
             ->addOrderBy('c.createTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 根据课程查找收藏
+     * @return array<Collect>
+     * @phpstan-return list<Collect>
      */
     public function findByCourse(Course $course): array
     {
+        /** @var list<Collect> */
         return $this->createQueryBuilder('c')
             ->where('c.course = :course')
             ->andWhere('c.status = :status')
@@ -51,7 +57,8 @@ class CollectRepository extends ServiceEntityRepository
             ->setParameter('status', 'active')
             ->orderBy('c.createTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
@@ -59,13 +66,18 @@ class CollectRepository extends ServiceEntityRepository
      */
     public function findByUserAndCourse(string $userId, Course $course): ?Collect
     {
-        return $this->createQueryBuilder('c')
+        $result = $this->createQueryBuilder('c')
             ->where('c.userId = :userId')
             ->andWhere('c.course = :course')
             ->setParameter('userId', $userId)
             ->setParameter('course', $course)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
+
+        assert($result instanceof Collect || null === $result);
+
+        return $result;
     }
 
     /**
@@ -74,14 +86,18 @@ class CollectRepository extends ServiceEntityRepository
     public function isCollectedByUser(string $userId, Course $course): bool
     {
         $collect = $this->findByUserAndCourse($userId, $course);
+
         return null !== $collect && $collect->isActive();
     }
 
     /**
      * 根据收藏分组查找
+     * @return array<Collect>
+     * @phpstan-return list<Collect>
      */
     public function findByGroup(string $userId, string $group): array
     {
+        /** @var list<Collect> */
         return $this->createQueryBuilder('c')
             ->where('c.userId = :userId')
             ->andWhere('c.collectGroup = :group')
@@ -93,14 +109,18 @@ class CollectRepository extends ServiceEntityRepository
             ->addOrderBy('c.sortNumber', 'DESC')
             ->addOrderBy('c.createTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 获取用户的收藏分组列表
+     *
+     * @return array<int, array{group: string|null, count: int}>
      */
     public function getUserCollectGroups(string $userId): array
     {
+        /** @var list<array{collectGroup: string|null, count: int}> */
         $result = $this->createQueryBuilder('c')
             ->select('c.collectGroup, COUNT(c.id) as count')
             ->where('c.userId = :userId')
@@ -111,44 +131,72 @@ class CollectRepository extends ServiceEntityRepository
             ->groupBy('c.collectGroup')
             ->orderBy('count', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
 
-        return array_map(function ($item) {
-            return [
+        return array_map(
+            static fn (array $item): array => [
                 'group' => $item['collectGroup'],
                 'count' => $item['count'],
-            ];
-        }, $result);
+            ],
+            $result
+        );
     }
 
     /**
      * 获取收藏统计信息
+     *
+     * @return array{total_collects: int, top_collects: int, normal_collects: int}
      */
     public function getCollectStatistics(?string $userId = null, ?Course $course = null): array
     {
-        $qb = $this->createQueryBuilder('c')
+        $qbTotal = $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
             ->where('c.status = :status')
-            ->setParameter('status', 'active');
+            ->setParameter('status', 'active')
+        ;
 
         if ((bool) $userId) {
-            $qb->andWhere('c.userId = :userId')
-               ->setParameter('userId', $userId);
+            $qbTotal->andWhere('c.userId = :userId')
+                ->setParameter('userId', $userId)
+            ;
         }
 
         if ((bool) $course) {
-            $qb->andWhere('c.course = :course')
-               ->setParameter('course', $course);
+            $qbTotal->andWhere('c.course = :course')
+                ->setParameter('course', $course)
+            ;
         }
 
-        $totalCollects = $qb->select('COUNT(c.id)')
+        $totalCollects = (int) $qbTotal
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
-        $topCollects = $qb->select('COUNT(c.id)')
+        $qbTop = $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.status = :status')
             ->andWhere('c.isTop = :isTop')
+            ->setParameter('status', 'active')
             ->setParameter('isTop', true)
+        ;
+
+        if ((bool) $userId) {
+            $qbTop->andWhere('c.userId = :userId')
+                ->setParameter('userId', $userId)
+            ;
+        }
+
+        if ((bool) $course) {
+            $qbTop->andWhere('c.course = :course')
+                ->setParameter('course', $course)
+            ;
+        }
+
+        $topCollects = (int) $qbTop
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
         return [
             'total_collects' => $totalCollects,
@@ -159,9 +207,12 @@ class CollectRepository extends ServiceEntityRepository
 
     /**
      * 搜索收藏
+     * @return array<Collect>
+     * @phpstan-return list<Collect>
      */
     public function searchCollects(string $userId, string $keyword): array
     {
+        /** @var list<Collect> */
         return $this->createQueryBuilder('c')
             ->join('c.course', 'course')
             ->where('c.userId = :userId')
@@ -173,6 +224,25 @@ class CollectRepository extends ServiceEntityRepository
             ->orderBy('c.isTop', 'DESC')
             ->addOrderBy('c.createTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
-} 
+
+    public function save(Collect $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(Collect $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+}

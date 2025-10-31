@@ -2,36 +2,17 @@
 
 namespace Tourze\TrainCourseBundle\DependencyInjection;
 
-use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Extension\Extension;
-use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+use Tourze\SymfonyDependencyServiceLoader\AutoExtension;
 
 /**
  * 培训课程Bundle扩展类
  *
  * 负责加载Bundle配置和服务定义
  */
-class TrainCourseExtension extends Extension
+class TrainCourseExtension extends AutoExtension
 {
-    public function load(array $configs, ContainerBuilder $container): void
+    protected function getConfigDir(): string
     {
-        // 加载服务配置
-        $loader = new YamlFileLoader(
-            $container,
-            new FileLocator(__DIR__ . '/../Resources/config')
-        );
-        $loader->load('services.yaml');
-        $loader->load('parameters.yaml');
-        
-        // 只在有Doctrine扩展时加载doctrine.yaml
-        if ($container->hasExtension('doctrine')) {
-            $loader->load('doctrine.yaml');
-        }
-    }
-    
-    public function getAlias(): string
-    {
-        return 'train_course';
+        return __DIR__ . '/../Resources/config';
     }
 }

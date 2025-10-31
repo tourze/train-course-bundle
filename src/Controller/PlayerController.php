@@ -6,11 +6,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Tourze\TrainCourseBundle\Entity\Lesson;
 use Tourze\TrainCourseBundle\Repository\LessonRepository;
 use Tourze\TrainCourseBundle\Service\CourseService;
 use WeuiBundle\Service\NoticeService;
 
-class PlayerController extends AbstractController
+final class PlayerController extends AbstractController
 {
     public function __construct(
         private readonly LessonRepository $lessonRepository,
@@ -27,7 +28,7 @@ class PlayerController extends AbstractController
         ]);
         if (null !== $lesson) {
             $url = $this->courseService->getLessonPlayUrl($lesson);
-            if (empty($url)) {
+            if ('' === $url) {
                 return $this->noticeService->weuiError('找不到视频播放地址');
             }
 

@@ -1,53 +1,111 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainCourseBundle\Tests\Command;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Symfony\Component\Console\Tester\CommandTester;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractCommandTestCase;
 use Tourze\TrainCourseBundle\Command\CourseCleanupCommand;
+use Tourze\TrainCourseBundle\Repository\CourseAuditRepository;
+use Tourze\TrainCourseBundle\Repository\CourseRepository;
+use Tourze\TrainCourseBundle\Repository\CourseVersionRepository;
+use Tourze\TrainCourseBundle\Service\CourseConfigService;
 
 /**
- * CourseCleanupCommand 单元测试
+ * CourseCleanupCommand 集成测试
+ *
+ * @internal
  */
-class CourseCleanupCommandTest extends TestCase
+#[CoversClass(CourseCleanupCommand::class)]
+#[RunTestsInSeparateProcesses]
+final class CourseCleanupCommandTest extends AbstractCommandTestCase
 {
-    protected function setUp(): void
+    protected function onSetUp(): void        // 集成测试的初始化逻辑在这里实现
     {
-        // Command 测试主要验证方法存在性
     }
 
-    public function test_commandExists(): void
+    protected function getCommandTester(): CommandTester
     {
-        $reflection = new \ReflectionClass(CourseCleanupCommand::class);
-        $this->assertTrue($reflection->isInstantiable());
+        $command = self::getService(CourseCleanupCommand::class);
+
+        return new CommandTester($command);
     }
 
-    public function test_configureMethod_exists(): void
+    public function testCommandExecute(): void
     {
-        $reflection = new \ReflectionClass(CourseCleanupCommand::class);
-        $this->assertTrue($reflection->hasMethod('configure'));
+        // 创建必要的 mock 对象
+        $courseRepository = $this->createMock(CourseRepository::class);
+        $versionRepository = $this->createMock(CourseVersionRepository::class);
+        $auditRepository = $this->createMock(CourseAuditRepository::class);
+        $configService = $this->createMock(CourseConfigService::class);
+
+        // 设置 mock 对象的预期行为
+        $courseRepository->method('findAll')->willReturn([]);
+        $versionRepository->method('findAll')->willReturn([]);
+        $auditRepository->method('findAll')->willReturn([]);
+        $configService->method('get')->willReturn(null);
+
+        // 注册 mock 服务到容器
+        self::getContainer()->set(CourseRepository::class, $courseRepository);
+        self::getContainer()->set(CourseVersionRepository::class, $versionRepository);
+        self::getContainer()->set(CourseAuditRepository::class, $auditRepository);
+        self::getContainer()->set(CourseConfigService::class, $configService);
+
+        $commandTester = $this->getCommandTester();
+        $commandTester->execute(['--clear-cache' => true]);
+
+        // 验证命令执行成功
+        $this->assertSame(0, $commandTester->getStatusCode());
     }
 
-    public function test_executeMethod_exists(): void
+    public function testOptionClearCache(): void
     {
-        $reflection = new \ReflectionClass(CourseCleanupCommand::class);
-        $this->assertTrue($reflection->hasMethod('execute'));
+        $commandTester = $this->getCommandTester();
+        $commandTester->execute(['--clear-cache' => true]);
+        $this->assertSame(0, $commandTester->getStatusCode());
+        $this->assertNotEmpty($commandTester->getDisplay());
     }
 
-    public function test_commandInheritsFromCommand(): void
+    public function testOptionCleanupVersions(): void
     {
-        $reflection = new \ReflectionClass(CourseCleanupCommand::class);
-        $this->assertTrue($reflection->isSubclassOf('Symfony\Component\Console\Command\Command'));
+        $commandTester = $this->getCommandTester();
+        $commandTester->execute(['--cleanup-versions' => true]);
+        $this->assertSame(0, $commandTester->getStatusCode());
+        $this->assertNotEmpty($commandTester->getDisplay());
     }
 
-    public function test_methodVisibility(): void
+    public function testOptionCleanupAudits(): void
     {
-        $reflection = new \ReflectionClass(CourseCleanupCommand::class);
-        
-        // 验证方法可见性
-        $configureMethod = $reflection->getMethod('configure');
-        $this->assertTrue($configureMethod->isProtected());
-        
-        $executeMethod = $reflection->getMethod('execute');
-        $this->assertTrue($executeMethod->isProtected());
+        $commandTester = $this->getCommandTester();
+        $commandTester->execute(['--cleanup-audits' => true]);
+        $this->assertSame(0, $commandTester->getStatusCode());
+        $this->assertNotEmpty($commandTester->getDisplay());
     }
-} 
+
+    public function testOptionCleanupExpired(): void
+    {
+        $commandTester = $this->getCommandTester();
+        $commandTester->execute(['--cleanup-expired' => true]);
+        $this->assertSame(0, $commandTester->getStatusCode());
+        $this->assertNotEmpty($commandTester->getDisplay());
+    }
+
+    public function testOptionDays(): void
+    {
+        $commandTester = $this->getCommandTester();
+        $commandTester->execute(['--days' => '60']);
+        $this->assertSame(0, $commandTester->getStatusCode());
+        $this->assertNotEmpty($commandTester->getDisplay());
+    }
+
+    public function testOptionDryRun(): void
+    {
+        $commandTester = $this->getCommandTester();
+        $commandTester->execute(['--dry-run' => true]);
+        $this->assertSame(0, $commandTester->getStatusCode());
+        $this->assertNotEmpty($commandTester->getDisplay());
+    }
+}

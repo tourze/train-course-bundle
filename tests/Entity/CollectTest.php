@@ -1,181 +1,203 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainCourseBundle\Tests\Entity;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 use Tourze\TrainCourseBundle\Entity\Collect;
 use Tourze\TrainCourseBundle\Entity\Course;
 
 /**
  * Collect 实体单元测试
+ *
+ * @internal
  */
-class CollectTest extends TestCase
+#[CoversClass(Collect::class)]
+final class CollectTest extends AbstractEntityTestCase
 {
+    protected function createEntity(): object
+    {
+        return new Collect();
+    }
+
+    /**
+     * @return iterable<string, array{string, mixed}>
+     */
+    public static function propertiesProvider(): iterable
+    {
+        return [
+            'status' => ['status', 'test_value'],
+            'sortNumber' => ['sortNumber', 123],
+            'isTop' => ['isTop', true],
+        ];
+    }
+
     private Collect $collect;
 
     protected function setUp(): void
     {
+        parent::setUp();
+
+        // 单元测试设置
         $this->collect = new Collect();
     }
 
-    public function test_getId_returnsNullByDefault(): void
+    public function testGetIdReturnsNullByDefault(): void
     {
         $this->assertNull($this->collect->getId());
     }
 
-    public function test_setAndGetCreatedBy_worksCorrectly(): void
+    public function testSetAndGetCreatedByWorksCorrectly(): void
     {
         $createdBy = 'user123';
-        $result = $this->collect->setCreatedBy($createdBy);
-        
-        $this->assertSame($this->collect, $result);
+        $this->collect->setCreatedBy($createdBy);
+
         $this->assertSame($createdBy, $this->collect->getCreatedBy());
     }
 
-    public function test_setAndGetUpdatedBy_worksCorrectly(): void
+    public function testSetAndGetUpdatedByWorksCorrectly(): void
     {
         $updatedBy = 'user456';
-        $result = $this->collect->setUpdatedBy($updatedBy);
-        
-        $this->assertSame($this->collect, $result);
+        $this->collect->setUpdatedBy($updatedBy);
+
         $this->assertSame($updatedBy, $this->collect->getUpdatedBy());
     }
 
-    public function test_setAndGetUserId_worksCorrectly(): void
+    public function testSetAndGetUserIdWorksCorrectly(): void
     {
         $userId = 'user789';
-        $result = $this->collect->setUserId($userId);
-        
-        $this->assertSame($this->collect, $result);
+        $this->collect->setUserId($userId);
+
         $this->assertSame($userId, $this->collect->getUserId());
     }
 
-    public function test_setAndGetCourse_worksCorrectly(): void
+    public function testSetAndGetCourseWorksCorrectly(): void
     {
+        /*
+         * 使用具体的Course实体类创建Mock对象
+         * 原因：Collect实体与Course实体存在多对一关联关系，需要测试课程关联的设置和获取
+         * 必要性：验证Collect实体能正确存储和返回关联的Course对象引用
+         * 替代方案：可以使用真实的Course实体，但Mock对象更适合单元测试的隔离性要求
+         */
         $course = $this->createMock(Course::class);
-        $result = $this->collect->setCourse($course);
-        
-        $this->assertSame($this->collect, $result);
+        $this->collect->setCourse($course);
+
         $this->assertSame($course, $this->collect->getCourse());
     }
 
-    public function test_setAndGetStatus_worksCorrectly(): void
+    public function testSetAndGetStatusWorksCorrectly(): void
     {
         $this->assertSame('active', $this->collect->getStatus()); // 默认值
-        
+
         $status = 'cancelled';
-        $result = $this->collect->setStatus($status);
-        
-        $this->assertSame($this->collect, $result);
+        $this->collect->setStatus($status);
+
         $this->assertSame($status, $this->collect->getStatus());
     }
 
-    public function test_setAndGetCollectGroup_worksCorrectly(): void
+    public function testSetAndGetCollectGroupWorksCorrectly(): void
     {
         $collectGroup = '我的收藏';
-        $result = $this->collect->setCollectGroup($collectGroup);
-        
-        $this->assertSame($this->collect, $result);
+        $this->collect->setCollectGroup($collectGroup);
+
         $this->assertSame($collectGroup, $this->collect->getCollectGroup());
     }
 
-    public function test_setAndGetNote_worksCorrectly(): void
+    public function testSetAndGetNoteWorksCorrectly(): void
     {
         $note = '这是一个很好的课程';
-        $result = $this->collect->setNote($note);
-        
-        $this->assertSame($this->collect, $result);
+        $this->collect->setNote($note);
+
         $this->assertSame($note, $this->collect->getNote());
     }
 
-    public function test_setAndGetSortNumber_worksCorrectly(): void
+    public function testSetAndGetSortNumberWorksCorrectly(): void
     {
         $this->assertSame(0, $this->collect->getSortNumber()); // 默认值
-        
+
         $sortNumber = 100;
-        $result = $this->collect->setSortNumber($sortNumber);
-        
-        $this->assertSame($this->collect, $result);
+        $this->collect->setSortNumber($sortNumber);
+
         $this->assertSame($sortNumber, $this->collect->getSortNumber());
     }
 
-    public function test_setAndGetIsTop_worksCorrectly(): void
+    public function testSetAndGetIsTopWorksCorrectly(): void
     {
         $this->assertFalse($this->collect->isIsTop()); // 默认值
-        
-        $result = $this->collect->setIsTop(true);
-        
-        $this->assertSame($this->collect, $result);
+
+        $this->collect->setIsTop(true);
+
         $this->assertTrue($this->collect->isIsTop());
-        
+
         $this->collect->setIsTop(false);
         $this->assertFalse($this->collect->isIsTop());
     }
 
-    public function test_setAndGetMetadata_worksCorrectly(): void
+    public function testSetAndGetMetadataWorksCorrectly(): void
     {
         $metadata = ['key' => 'value', 'tags' => ['tag1', 'tag2']];
-        $result = $this->collect->setMetadata($metadata);
-        
-        $this->assertSame($this->collect, $result);
+        $this->collect->setMetadata($metadata);
+
         $this->assertSame($metadata, $this->collect->getMetadata());
     }
 
-    public function test_setAndGetMetadata_withNull_worksCorrectly(): void
+    public function testSetAndGetMetadataWithNullWorksCorrectly(): void
     {
         $this->collect->setMetadata(['test' => 'data']);
-        $result = $this->collect->setMetadata(null);
-        
-        $this->assertSame($this->collect, $result);
+        $this->collect->setMetadata(null);
+
         $this->assertNull($this->collect->getMetadata());
     }
 
-    public function test_isActive_withActiveStatus_returnsTrue(): void
+    public function testIsActiveWithActiveStatusReturnsTrue(): void
     {
         $this->collect->setStatus('active');
         $this->assertTrue($this->collect->isActive());
     }
 
-    public function test_isActive_withCancelledStatus_returnsFalse(): void
+    public function testIsActiveWithCancelledStatusReturnsFalse(): void
     {
         $this->collect->setStatus('cancelled');
         $this->assertFalse($this->collect->isActive());
     }
 
-    public function test_isActive_withHiddenStatus_returnsFalse(): void
+    public function testIsActiveWithHiddenStatusReturnsFalse(): void
     {
         $this->collect->setStatus('hidden');
         $this->assertFalse($this->collect->isActive());
     }
 
-    public function test_getStatusLabel_withActiveStatus_returnsCorrectLabel(): void
+    public function testGetStatusLabelWithActiveStatusReturnsCorrectLabel(): void
     {
         $this->collect->setStatus('active');
         $this->assertSame('已收藏', $this->collect->getStatusLabel());
     }
 
-    public function test_getStatusLabel_withCancelledStatus_returnsCorrectLabel(): void
+    public function testGetStatusLabelWithCancelledStatusReturnsCorrectLabel(): void
     {
         $this->collect->setStatus('cancelled');
         $this->assertSame('已取消', $this->collect->getStatusLabel());
     }
 
-    public function test_getStatusLabel_withHiddenStatus_returnsCorrectLabel(): void
+    public function testGetStatusLabelWithHiddenStatusReturnsCorrectLabel(): void
     {
         $this->collect->setStatus('hidden');
         $this->assertSame('已隐藏', $this->collect->getStatusLabel());
     }
 
-    public function test_getStatusLabel_withUnknownStatus_returnsDefaultLabel(): void
+    public function testGetStatusLabelWithUnknownStatusReturnsDefaultLabel(): void
     {
         $this->collect->setStatus('unknown');
         $this->assertSame('未知状态', $this->collect->getStatusLabel());
     }
 
-    public function test_defaultValues_areSetCorrectly(): void
+    public function testDefaultValuesAreSetCorrectly(): void
     {
         $collect = new Collect();
-        
+
         $this->assertSame('active', $collect->getStatus());
         $this->assertSame(0, $collect->getSortNumber());
         $this->assertFalse($collect->isIsTop());
@@ -186,47 +208,53 @@ class CollectTest extends TestCase
         $this->assertNull($collect->getCourse());
     }
 
-    public function test_collectGroup_canBeNull(): void
+    public function testCollectGroupCanBeNull(): void
     {
         $this->collect->setCollectGroup('测试分组');
         $this->assertSame('测试分组', $this->collect->getCollectGroup());
-        
+
         $this->collect->setCollectGroup(null);
         $this->assertNull($this->collect->getCollectGroup());
     }
 
-    public function test_note_canBeNull(): void
+    public function testNoteCanBeNull(): void
     {
         $this->collect->setNote('测试备注');
         $this->assertSame('测试备注', $this->collect->getNote());
-        
+
         $this->collect->setNote(null);
         $this->assertNull($this->collect->getNote());
     }
 
-    public function test_course_canBeNull(): void
+    public function testCourseCanBeNull(): void
     {
+        /*
+         * 使用具体的Course实体类创建Mock对象
+         * 原因：测试Course关联属性的null值设置功能，需要先设置一个Course对象再置为null
+         * 必要性：验证Collect实体的setCourse方法能接受null值并正确存储
+         * 替代方案：可以使用真实的Course实体，但Mock对象更符合单元测试的轻量化要求
+         */
         $course = $this->createMock(Course::class);
         $this->collect->setCourse($course);
         $this->assertSame($course, $this->collect->getCourse());
-        
+
         $this->collect->setCourse(null);
         $this->assertNull($this->collect->getCourse());
     }
 
-    public function test_sortNumber_acceptsNegativeValues(): void
+    public function testSortNumberAcceptsNegativeValues(): void
     {
         $this->collect->setSortNumber(-10);
         $this->assertSame(-10, $this->collect->getSortNumber());
     }
 
-    public function test_sortNumber_acceptsLargeValues(): void
+    public function testSortNumberAcceptsLargeValues(): void
     {
         $this->collect->setSortNumber(999999);
         $this->assertSame(999999, $this->collect->getSortNumber());
     }
 
-    public function test_metadata_acceptsComplexArray(): void
+    public function testMetadataAcceptsComplexArray(): void
     {
         $complexMetadata = [
             'user_preferences' => [
@@ -239,14 +267,14 @@ class CollectTest extends TestCase
                 'deadline' => '2024-12-31',
             ],
         ];
-        
+
         $this->collect->setMetadata($complexMetadata);
         $this->assertSame($complexMetadata, $this->collect->getMetadata());
     }
 
-    public function test_metadata_acceptsEmptyArray(): void
+    public function testMetadataAcceptsEmptyArray(): void
     {
         $this->collect->setMetadata([]);
         $this->assertSame([], $this->collect->getMetadata());
     }
-} 
+}

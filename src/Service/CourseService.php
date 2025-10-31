@@ -3,34 +3,78 @@
 namespace Tourze\TrainCourseBundle\Service;
 
 use Carbon\CarbonImmutable;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Tourze\AliyunVodBundle\Service\VideoManageService;
-use Tourze\TrainCategoryBundle\Entity\Category;
+use Tourze\CatalogBundle\Entity\Catalog;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
+use Tourze\TrainCourseBundle\Repository\CourseRepository;
+use Tourze\TrainRecordBundle\Service\LearnProgressService;
 
 /**
  * 课程服务
  * 负责课程相关的业务逻辑处理
  */
-class CourseService
+#[WithMonologChannel(channel: 'train_course')]
+readonly class CourseService
 {
     public function __construct(
-        private readonly LoggerInterface $logger,
-        private readonly CacheInterface $cache,
-        private readonly VideoManageService $videoManageService,
-        private readonly CourseConfigService $configService,
+        private LoggerInterface $logger,
+        private CacheInterface $cache,
+        private VideoManageService $videoManageService,
+        private CourseConfigService $configService,
+        private CourseRepository $courseRepository,
+        private ?LearnProgressService $learnProgressService = null,
     ) {
+    }
+
+    /**
+     * 根据ID查找课程
+     */
+    public function findById(string $id): ?Course
+    {
+        return $this->courseRepository->find($id);
+    }
+
+    /**
+     * 根据条件查找单个课程
+     */
+    /**
+     * @param array<string, mixed> $criteria
+     * @param array<string, 'ASC'|'DESC'>|null $orderBy
+     */
+    public function findOneBy(array $criteria, ?array $orderBy = null): ?Course
+    {
+        return $this->courseRepository->findOneBy($criteria, $orderBy);
+    }
+
+    /**
+     * 根据条件查找多个课程
+     *
+     * @return Course[]
+     */
+    /**
+     * @param array<string, mixed> $criteria
+     * @param array<string, 'ASC'|'DESC'>|null $orderBy
+     * @return Course[]
+     */
+    public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array
+    {
+        return $this->courseRepository->findBy($criteria, $orderBy, $limit, $offset);
     }
 
     /**
      * 获取所有下级目录
      *
-     * @return array|Category[]
+     * @return array|Catalog[]
      */
-    public function getAllChildCategories(Category $category): array
+    /**
+     * @return array<int, Catalog>
+     */
+    public function getAllChildCategories(Catalog $category): array
     {
         $result = [
             $category,
@@ -48,42 +92,69 @@ class CourseService
      */
     public function getLessonPlayUrl(Lesson $lesson): string
     {
-        if (str_starts_with($lesson->getVideoUrl(), 'ali://')) {
-            $vid = str_replace('ali://', '', $lesson->getVideoUrl());
-            $vid = trim($vid);
+        $videoUrl = $lesson->getVideoUrl();
 
-            return $this->cache->get("ali_video_playUrl_{$vid}", function (ItemInterface $item) use ($vid) {
-                $item->expiresAt(CarbonImmutable::now()->addMinutes($this->configService->getVideoPlayUrlCacheTime()));
-
-                try {
-                    $playInfo = $this->videoManageService->getPlayInfo($vid);
-
-                    // 获取第一个播放地址（通常是最高质量的）
-                    if (!empty($playInfo['playInfoList'])) {
-                        return $playInfo['playInfoList'][0]['playURL'];
-                    }
-
-                    $this->logger->warning('未找到视频播放信息', ['vid' => $vid]);
-                    return $vid;
-                } catch (\Exception $exception) {
-                    $this->logger->error('获取阿里视频信息遇到错误', [
-                        'vid' => $vid,
-                        'exception' => $exception->getMessage(),
-                    ]);
-
-                    return $vid;
-                }
-            });
+        if (null === $videoUrl) {
+            return '';
         }
 
-        if (str_starts_with($lesson->getVideoUrl(), 'polyv://')) {
-            $polyvConfig = $this->configService->getPolyvProxyConfig();
-            return str_replace($polyvConfig['prefix'], $polyvConfig['proxy_url'], $lesson->getVideoUrl());
+        if (str_starts_with($videoUrl, 'ali://')) {
+            return $this->getAliVideoPlayUrl($videoUrl);
         }
 
-        return strval($lesson->getVideoUrl());
+        if (str_starts_with($videoUrl, 'polyv://')) {
+            return $this->getPolyvVideoPlayUrl($videoUrl);
+        }
+
+        return $videoUrl;
     }
 
+    private function getAliVideoPlayUrl(string $videoUrl): string
+    {
+        $vid = trim(str_replace('ali://', '', $videoUrl));
+
+        return $this->cache->get("ali_video_playUrl_{$vid}", function (ItemInterface $item) use ($vid) {
+            $item->expiresAt(CarbonImmutable::now()->addMinutes($this->configService->getVideoPlayUrlCacheTime()));
+
+            return $this->fetchAliVideoPlayUrl($vid);
+        });
+    }
+
+    private function fetchAliVideoPlayUrl(string $vid): string
+    {
+        try {
+            $playInfo = $this->videoManageService->getPlayInfo($vid);
+
+            if (isset($playInfo['playInfoList']) && is_array($playInfo['playInfoList']) && count($playInfo['playInfoList']) > 0) {
+                $firstPlayInfo = $playInfo['playInfoList'][0];
+                if (is_array($firstPlayInfo) && isset($firstPlayInfo['playURL']) && is_string($firstPlayInfo['playURL'])) {
+                    return $firstPlayInfo['playURL'];
+                }
+            }
+
+            $this->logger->warning('未找到视频播放信息', ['vid' => $vid]);
+
+            return $vid;
+        } catch (\Exception $exception) {
+            $this->logger->error('获取阿里视频信息遇到错误', [
+                'vid' => $vid,
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return $vid;
+        }
+    }
+
+    private function getPolyvVideoPlayUrl(string $videoUrl): string
+    {
+        $polyvConfig = $this->configService->getPolyvProxyConfig();
+
+        return str_replace($polyvConfig['prefix'], $polyvConfig['proxy_url'], $videoUrl);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public function getLessonArray(Lesson $lesson): array
     {
         return $lesson->retrieveApiArray();
@@ -94,7 +165,7 @@ class CourseService
      */
     public function isCourseValid(Course $course): bool
     {
-        return $course->isValid() === true;
+        return true === $course->isValid();
     }
 
     /**
@@ -106,6 +177,7 @@ class CourseService
         foreach ($course->getChapters() as $chapter) {
             $totalDuration += $chapter->getDurationSecond();
         }
+
         return $totalDuration;
     }
 
@@ -118,6 +190,7 @@ class CourseService
         foreach ($course->getChapters() as $chapter) {
             $totalLessons += $chapter->getLessonCount();
         }
+
         return $totalLessons;
     }
 
@@ -129,7 +202,7 @@ class CourseService
         $supportedProtocols = $this->configService->getSupportedVideoProtocols();
 
         foreach ($supportedProtocols as $protocol) {
-            if ((bool) str_starts_with($videoUrl, $protocol)) {
+            if (str_starts_with($videoUrl, $protocol)) {
                 return true;
             }
         }
@@ -138,20 +211,50 @@ class CourseService
     }
 
     /**
-     * 获取课程学习进度（需要用户学习记录）
-     * 这里只是接口定义，具体实现需要用户学习记录相关的服务
+     * 获取课程学习进度
+     * @return array<string, mixed>
      */
     public function getCourseProgress(Course $course, string $userId): array
     {
-        // TODO: 实现用户学习进度计算
+        // 获取总课时数和总时长
+        $totalLessons = $this->getCourseTotalLessons($course);
+        $totalDuration = $this->getCourseTotalDuration($course);
+
+        // 如果LearnProgressService可用，使用真实的学习进度数据
+        if (null !== $this->learnProgressService) {
+            try {
+                $progressData = $this->learnProgressService->calculateCourseProgress($userId, (string) $course->getId());
+                return [
+                    'course_id' => $course->getId(),
+                    'user_id' => $userId,
+                    'total_lessons' => $totalLessons,
+                    'completed_lessons' => $progressData['completedLessons'],
+                    'progress_percentage' => $progressData['overallProgress'],
+                    'total_duration' => $totalDuration,
+                    'watched_duration' => $progressData['totalEffectiveTime'],
+                    'average_progress' => $progressData['averageProgress'],
+                    'total_lessons_with_progress' => $progressData['totalLessons'],
+                ];
+            } catch (\Exception $e) {
+                $this->logger->warning('获取学习进度失败，使用默认值', [
+                    'userId' => $userId,
+                    'courseId' => $course->getId(),
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // 降级方案：返回默认的学习进度数据
         return [
             'course_id' => $course->getId(),
             'user_id' => $userId,
-            'total_lessons' => $this->getCourseTotalLessons($course),
+            'total_lessons' => $totalLessons,
             'completed_lessons' => 0,
             'progress_percentage' => 0,
-            'total_duration' => $this->getCourseTotalDuration($course),
+            'total_duration' => $totalDuration,
             'watched_duration' => 0,
+            'average_progress' => 0,
+            'total_lessons_with_progress' => 0,
         ];
     }
 }
