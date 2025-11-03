@@ -14,6 +14,7 @@ use Tourze\DoctrineTrackBundle\DoctrineTrackBundle;
 use Tourze\DoctrineUserBundle\DoctrineUserBundle;
 use Tourze\RoutingAutoLoaderBundle\RoutingAutoLoaderBundle;
 use WeuiBundle\WeuiBundle;
+use Tourze\EasyAdminMenuBundle\EasyAdminMenuBundle;
 
 class TrainCourseBundle extends Bundle implements BundleDependencyInterface
 {
@@ -30,6 +31,7 @@ class TrainCourseBundle extends Bundle implements BundleDependencyInterface
             CatalogBundle::class => ['all' => true],
             CmsBundle::class => ['all' => true],
             RoutingAutoLoaderBundle::class => ['all' => true],
+            EasyAdminMenuBundle::class => ['all' => true],
         ];
     }
 }
