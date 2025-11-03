@@ -15,6 +15,9 @@ use Tourze\TrainCourseBundle\Repository\CourseOutlineRepository;
 /**
  * CourseOutlineRepository 集成测试
  *
+ * @template TEntity of CourseOutline
+ * @extends AbstractRepositoryTestCase<CourseOutline>
+ *
  * @internal
  */
 #[CoversClass(CourseOutlineRepository::class)]
@@ -85,9 +88,7 @@ final class CourseOutlineRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestOutline($course, 'published');
 
         $outlines = $this->repository->findAll();
-        self::assertIsArray($outlines);
         self::assertGreaterThanOrEqual(2, count($outlines));
-        self::assertContainsOnlyInstancesOf(CourseOutline::class, $outlines);
     }
 
     public function testFindBy(): void
@@ -97,7 +98,6 @@ final class CourseOutlineRepositoryTest extends AbstractRepositoryTestCase
         $outline2 = $this->createTestOutline($course, 'published');
 
         $draftOutlines = $this->repository->findBy(['status' => 'draft']);
-        self::assertIsArray($draftOutlines);
         self::assertContains($outline1, $draftOutlines);
         self::assertNotContains($outline2, $draftOutlines);
     }
@@ -152,7 +152,7 @@ final class CourseOutlineRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestOutline($course2, 'draft');
 
         $courseOutlines = $this->repository->findByCourse($course1);
-        self::assertIsArray($courseOutlines);
+        self::assertContainsOnlyInstancesOf(CourseOutline::class, $courseOutlines);
         self::assertCount(2, $courseOutlines);
         self::assertContains($outline1, $courseOutlines);
         self::assertContains($outline2, $courseOutlines);
@@ -165,7 +165,7 @@ final class CourseOutlineRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestOutline($course, 'draft');
 
         $publishedOutlines = $this->repository->findPublishedByCourse($course);
-        self::assertIsArray($publishedOutlines);
+        self::assertContainsOnlyInstancesOf(CourseOutline::class, $publishedOutlines);
         self::assertCount(1, $publishedOutlines);
         self::assertContains($publishedOutline, $publishedOutlines);
     }
@@ -179,7 +179,7 @@ final class CourseOutlineRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestOutline($course1, 'draft');
 
         $publishedOutlines = $this->repository->findByStatus('published');
-        self::assertIsArray($publishedOutlines);
+        self::assertContainsOnlyInstancesOf(CourseOutline::class, $publishedOutlines);
         self::assertGreaterThanOrEqual(2, count($publishedOutlines));
         self::assertContains($outline1, $publishedOutlines);
         self::assertContains($outline2, $publishedOutlines);
@@ -192,7 +192,7 @@ final class CourseOutlineRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestOutline($course, 'published', 'Java开发');
 
         $results = $this->repository->searchOutlines('PHP', $course);
-        self::assertIsArray($results);
+        self::assertContainsOnlyInstancesOf(CourseOutline::class, $results);
         self::assertGreaterThanOrEqual(1, count($results));
         self::assertContains($outline1, $results);
     }
@@ -287,8 +287,8 @@ final class CourseOutlineRepositoryTest extends AbstractRepositoryTestCase
         $withTime = $this->repository->findBy(['estimatedMinutes' => 60]);
         $withoutTime = $this->repository->findBy(['estimatedMinutes' => null]);
 
-        self::assertIsArray($withTime);
-        self::assertIsArray($withoutTime);
+        self::assertContainsOnlyInstancesOf(CourseOutline::class, $withTime);
+        self::assertContainsOnlyInstancesOf(CourseOutline::class, $withoutTime);
         self::assertGreaterThanOrEqual(1, count($withTime));
         self::assertGreaterThanOrEqual(1, count($withoutTime));
     }

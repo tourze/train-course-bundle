@@ -14,6 +14,8 @@ use Tourze\TrainCourseBundle\Repository\CollectRepository;
 /**
  * CollectRepository 集成测试
  *
+ * @template TEntity of Collect
+ * @extends AbstractRepositoryTestCase<Collect>
  * @internal
  */
 #[CoversClass(CollectRepository::class)]
@@ -89,9 +91,7 @@ final class CollectRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestCollect('user2', $course);
 
         $collects = $this->repository->findAll();
-        self::assertIsArray($collects);
         self::assertGreaterThanOrEqual(2, count($collects));
-        self::assertContainsOnlyInstancesOf(Collect::class, $collects);
     }
 
     public function testFindBy(): void
@@ -101,7 +101,7 @@ final class CollectRepositoryTest extends AbstractRepositoryTestCase
         $collect2 = $this->createTestCollect('user456', $course, 'cancelled');
 
         $activeCollects = $this->repository->findBy(['status' => 'active']);
-        self::assertIsArray($activeCollects);
+        self::assertContainsOnlyInstancesOf(Collect::class, $activeCollects);
         self::assertContains($collect1, $activeCollects);
         self::assertNotContains($collect2, $activeCollects);
     }
@@ -190,7 +190,7 @@ final class CollectRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestCollect('user456', $course1, 'active');
 
         $userCollects = $this->repository->findByUser('user123');
-        self::assertIsArray($userCollects);
+        self::assertContainsOnlyInstancesOf(Collect::class, $userCollects);
         self::assertCount(2, $userCollects);
         self::assertContains($collect1, $userCollects);
         self::assertContains($collect2, $userCollects);
@@ -215,7 +215,7 @@ final class CollectRepositoryTest extends AbstractRepositoryTestCase
         $collect2 = $this->createTestCollect('user2', $course, 'active');
 
         $courseCollects = $this->repository->findByCourse($course);
-        self::assertIsArray($courseCollects);
+        self::assertContainsOnlyInstancesOf(Collect::class, $courseCollects);
         self::assertCount(2, $courseCollects);
         self::assertContains($collect1, $courseCollects);
         self::assertContains($collect2, $courseCollects);
@@ -275,7 +275,7 @@ final class CollectRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestCollect('test_find_by_group_user', $course3, 'active', 'learning');
 
         $groupCollects = $this->repository->findByGroup('test_find_by_group_user', 'favorites');
-        self::assertIsArray($groupCollects);
+        self::assertContainsOnlyInstancesOf(Collect::class, $groupCollects);
         self::assertCount(2, $groupCollects);
         self::assertContains($collect1, $groupCollects);
         self::assertContains($collect2, $groupCollects);
@@ -291,7 +291,7 @@ final class CollectRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestCollect('test_get_user_groups_user', $course3, 'active', 'learning');
 
         $groups = $this->repository->getUserCollectGroups('test_get_user_groups_user');
-        self::assertIsArray($groups);
+        self::assertContainsOnlyInstancesOf(Collect::class, $groups);
         self::assertGreaterThanOrEqual(2, count($groups));
 
         $groupNames = array_column($groups, 'group');
@@ -320,11 +320,11 @@ final class CollectRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestCollect('user123', $course, 'active');
 
         $userStats = $this->repository->getCollectStatistics('user123');
-        self::assertIsArray($userStats);
+        self::assertContainsOnlyInstancesOf(Collect::class, $userStats);
         self::assertGreaterThanOrEqual(1, $userStats['total_collects']);
 
         $courseStats = $this->repository->getCollectStatistics(null, $course);
-        self::assertIsArray($courseStats);
+        self::assertContainsOnlyInstancesOf(Collect::class, $courseStats);
         self::assertGreaterThanOrEqual(1, $courseStats['total_collects']);
     }
 
@@ -339,7 +339,7 @@ final class CollectRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestCollect('user123', $otherCourse, 'active');
 
         $results = $this->repository->searchCollects('user123', 'PHP');
-        self::assertIsArray($results);
+        self::assertContainsOnlyInstancesOf(Collect::class, $results);
         self::assertGreaterThanOrEqual(1, count($results));
         self::assertContains($collect1, $results);
     }
@@ -395,8 +395,8 @@ final class CollectRepositoryTest extends AbstractRepositoryTestCase
         $withoutGroup = $this->repository->findBy(['collectGroup' => null]);
         $withGroup = $this->repository->findBy(['collectGroup' => 'group1']);
 
-        self::assertIsArray($withoutGroup);
-        self::assertIsArray($withGroup);
+        self::assertContainsOnlyInstancesOf(Collect::class, $withoutGroup);
+        self::assertContainsOnlyInstancesOf(Collect::class, $withGroup);
         self::assertGreaterThanOrEqual(1, count($withoutGroup));
         self::assertGreaterThanOrEqual(1, count($withGroup));
     }

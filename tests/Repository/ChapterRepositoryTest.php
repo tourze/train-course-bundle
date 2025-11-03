@@ -16,6 +16,8 @@ use Tourze\TrainCourseBundle\Repository\ChapterRepository;
 /**
  * ChapterRepository 集成测试
  *
+ * @template TEntity of Chapter
+ * @extends AbstractRepositoryTestCase<Chapter>
  * @internal
  */
 #[CoversClass(ChapterRepository::class)]
@@ -545,7 +547,7 @@ final class ChapterRepositoryTest extends AbstractRepositoryTestCase
         $result = $this->repository->findAll();
 
         // Repository methods always return array by contract
-        self::assertIsArray($result, 'findAll() should return an array');
+        self::assertIsArray($result);
         // If we have results, they should be Chapter entities by repository contract
     }
 
@@ -2030,6 +2032,9 @@ final class ChapterRepositoryTest extends AbstractRepositoryTestCase
         return $chapter;
     }
 
+    /**
+     * @return ChapterRepository
+     */
     protected function getRepository(): ChapterRepository
     {
         return $this->repository;

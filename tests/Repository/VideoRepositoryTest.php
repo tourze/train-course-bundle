@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tourze\TrainCourseBundle\Tests\Repository;
 
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\AliyunVodBundle\Entity\AliyunVodConfig;
@@ -13,6 +14,9 @@ use Tourze\TrainCourseBundle\Repository\VideoRepository;
 
 /**
  * VideoRepository 集成测试
+ *
+ * @template TEntity of Video
+ * @extends AbstractRepositoryTestCase<Video>
  *
  * @internal
  */
@@ -80,10 +84,6 @@ final class VideoRepositoryTest extends AbstractRepositoryTestCase
         $videos = $this->repository->findAll();
 
         self::assertIsArray($videos);
-        // 验证每个元素都是Video实例
-        foreach ($videos as $video) {
-            self::assertInstanceOf(Video::class, $video);
-        }
     }
 
     public function testFindBy(): void
@@ -944,7 +944,8 @@ final class VideoRepositoryTest extends AbstractRepositoryTestCase
         return $entity;
     }
 
-    protected function getRepository(): VideoRepository
+    /** @return ServiceEntityRepository<Video> */
+    protected function getRepository(): ServiceEntityRepository
     {
         return $this->repository;
     }

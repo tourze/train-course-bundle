@@ -15,6 +15,9 @@ use Tourze\TrainCourseBundle\Repository\CourseAuditRepository;
 /**
  * CourseAuditRepository 集成测试
  *
+ * @template TEntity of CourseAudit
+ * @extends AbstractRepositoryTestCase<CourseAudit>
+ *
  * @internal
  */
 #[CoversClass(CourseAuditRepository::class)]
@@ -83,7 +86,6 @@ final class CourseAuditRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestAudit($course, 'approved');
 
         $audits = $this->repository->findAll();
-        self::assertIsArray($audits);
         self::assertGreaterThanOrEqual(2, count($audits));
         self::assertContainsOnlyInstancesOf(CourseAudit::class, $audits);
     }
@@ -95,7 +97,7 @@ final class CourseAuditRepositoryTest extends AbstractRepositoryTestCase
 
         $results = $this->repository->findBy(['status' => 'NonExistent']);
 
-        self::assertIsArray($results);
+        self::assertContainsOnlyInstancesOf(CourseAudit::class, $results);
         self::assertEmpty($results);
     }
 
@@ -106,7 +108,7 @@ final class CourseAuditRepositoryTest extends AbstractRepositoryTestCase
         $audit2 = $this->createTestAudit($course, 'approved');
 
         $pendingAudits = $this->repository->findBy(['status' => 'pending']);
-        self::assertIsArray($pendingAudits);
+        self::assertContainsOnlyInstancesOf(CourseAudit::class, $pendingAudits);
         self::assertContains($audit1, $pendingAudits);
         self::assertNotContains($audit2, $pendingAudits);
     }
@@ -171,7 +173,7 @@ final class CourseAuditRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestAudit($course2, 'pending');
 
         $courseAudits = $this->repository->findByCourse($course1);
-        self::assertIsArray($courseAudits);
+        self::assertContainsOnlyInstancesOf(CourseAudit::class, $courseAudits);
         self::assertCount(2, $courseAudits);
         self::assertContains($audit1, $courseAudits);
         self::assertContains($audit2, $courseAudits);
@@ -186,7 +188,7 @@ final class CourseAuditRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestAudit($course1, 'approved');
 
         $pendingAudits = $this->repository->findByStatus('pending');
-        self::assertIsArray($pendingAudits);
+        self::assertContainsOnlyInstancesOf(CourseAudit::class, $pendingAudits);
         self::assertGreaterThanOrEqual(2, count($pendingAudits));
         self::assertContains($audit1, $pendingAudits);
         self::assertContains($audit2, $pendingAudits);
@@ -199,14 +201,19 @@ final class CourseAuditRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestAudit($course, 'approved');
 
         $pendingAudits = $this->repository->findPendingAudits();
-        self::assertIsArray($pendingAudits);
+        self::assertContainsOnlyInstancesOf(CourseAudit::class, $pendingAudits);
         self::assertContains($audit1, $pendingAudits);
     }
 
     public function testFindOverdueAudits(): void
     {
         $audits = $this->repository->findOverdueAudits();
+        self::assertContainsOnlyInstancesOf(CourseAudit::class, $audits);
         self::assertIsArray($audits);
+        // The method should return audits that are pending and overdue
+        foreach ($audits as $audit) {
+            self::assertSame('pending', $audit->getStatus());
+        }
     }
 
     public function testFindByAuditor(): void
@@ -218,7 +225,7 @@ final class CourseAuditRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestAudit($course1, 'pending', 'content', 'auditor2');
 
         $auditorAudits = $this->repository->findByAuditor('auditor1');
-        self::assertIsArray($auditorAudits);
+        self::assertContainsOnlyInstancesOf(CourseAudit::class, $auditorAudits);
         self::assertGreaterThanOrEqual(2, count($auditorAudits));
         self::assertContains($audit1, $auditorAudits);
         self::assertContains($audit2, $auditorAudits);
@@ -233,7 +240,7 @@ final class CourseAuditRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestAudit($course1, 'pending', 'quality');
 
         $contentAudits = $this->repository->findByAuditType('content');
-        self::assertIsArray($contentAudits);
+        self::assertContainsOnlyInstancesOf(CourseAudit::class, $contentAudits);
         self::assertGreaterThanOrEqual(2, count($contentAudits));
         self::assertContains($audit1, $contentAudits);
         self::assertContains($audit2, $contentAudits);
@@ -278,14 +285,33 @@ final class CourseAuditRepositoryTest extends AbstractRepositoryTestCase
     {
         $days = 30;
         $audits = $this->repository->findOldAudits($days);
+        self::assertContainsOnlyInstancesOf(CourseAudit::class, $audits);
         self::assertIsArray($audits);
+        // The method should return audits older than the specified days
+        $cutoffDate = new \DateTime();
+        $cutoffDate->modify("-{$days} days");
+        foreach ($audits as $audit) {
+            $createTime = $audit->getCreateTime();
+            self::assertInstanceOf(\DateTimeInterface::class, $createTime);
+            self::assertLessThanOrEqual($cutoffDate, $createTime);
+        }
     }
 
     public function testFindTimeoutAudits(): void
     {
         $hours = 24;
         $audits = $this->repository->findTimeoutAudits($hours);
+        self::assertContainsOnlyInstancesOf(CourseAudit::class, $audits);
         self::assertIsArray($audits);
+        // The method should return audits that have been pending for more than the specified hours
+        $timeoutDate = new \DateTime();
+        $timeoutDate->modify("-{$hours} hours");
+        foreach ($audits as $audit) {
+            self::assertSame('pending', $audit->getStatus());
+            $createTime = $audit->getCreateTime();
+            self::assertInstanceOf(\DateTimeInterface::class, $createTime);
+            self::assertLessThanOrEqual($timeoutDate, $createTime);
+        }
     }
 
     public function testSave(): void
@@ -339,8 +365,8 @@ final class CourseAuditRepositoryTest extends AbstractRepositoryTestCase
         $withAuditor = $this->repository->findBy(['auditor' => 'auditor1']);
         $withoutAuditor = $this->repository->findBy(['auditor' => null]);
 
-        self::assertIsArray($withAuditor);
-        self::assertIsArray($withoutAuditor);
+        self::assertContainsOnlyInstancesOf(CourseAudit::class, $withAuditor);
+        self::assertContainsOnlyInstancesOf(CourseAudit::class, $withoutAuditor);
         self::assertGreaterThanOrEqual(1, count($withAuditor));
         self::assertGreaterThanOrEqual(1, count($withoutAuditor));
     }

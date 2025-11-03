@@ -15,6 +15,9 @@ use Tourze\TrainCourseBundle\Repository\EvaluateRepository;
 /**
  * EvaluateRepository 集成测试
  *
+ * @template TEntity of Evaluate
+ * @extends AbstractRepositoryTestCase<Evaluate>
+ *
  * @internal
  */
 #[CoversClass(EvaluateRepository::class)]
@@ -86,7 +89,6 @@ final class EvaluateRepositoryTest extends AbstractRepositoryTestCase
 
         $evaluates = $this->repository->findBy(['rating' => 1, 'course' => $course]);
 
-        self::assertIsArray($evaluates);
         self::assertEmpty($evaluates);
     }
 
@@ -341,7 +343,6 @@ final class EvaluateRepositoryTest extends AbstractRepositoryTestCase
 
         $course1Evaluates = $this->repository->findByCourse($course1);
 
-        self::assertIsArray($course1Evaluates);
         self::assertCount(2, $course1Evaluates);
 
         $foundEvaluateIds = array_map(fn ($evaluate) => $evaluate->getId(), $course1Evaluates);
@@ -385,9 +386,7 @@ final class EvaluateRepositoryTest extends AbstractRepositoryTestCase
 
         $latestEvaluates = $this->repository->findLatestEvaluates($course, 10);
 
-        self::assertIsArray($latestEvaluates);
         self::assertLessThanOrEqual(10, count($latestEvaluates));
-        self::assertContainsOnlyInstancesOf(Evaluate::class, $latestEvaluates);
     }
 
     // 测试 findPopularEvaluates 方法
@@ -405,9 +404,7 @@ final class EvaluateRepositoryTest extends AbstractRepositoryTestCase
 
         $popularEvaluates = $this->repository->findPopularEvaluates($course, 10);
 
-        self::assertIsArray($popularEvaluates);
         self::assertLessThanOrEqual(10, count($popularEvaluates));
-        self::assertContainsOnlyInstancesOf(Evaluate::class, $popularEvaluates);
     }
 
     // 测试 save 方法

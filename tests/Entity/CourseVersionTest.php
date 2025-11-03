@@ -398,7 +398,6 @@ final class CourseVersionTest extends AbstractEntityTestCase
 
         $this->assertNotNull($courseSnapshot);
         $this->assertNotNull($chaptersSnapshot);
-        $this->assertIsArray($lessonsSnapshot);
 
         $this->assertSame('安全生产培训课程', $courseSnapshot['title']);
         $this->assertCount(2, $chaptersSnapshot);

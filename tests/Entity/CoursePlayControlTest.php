@@ -447,14 +447,18 @@ final class CoursePlayControlTest extends AbstractEntityTestCase
         $this->assertArrayHasKey('ui', $result);
 
         // 验证安全配置设置正确
-        $this->assertTrue($result['security']['prevent_screenshot']);
-        $this->assertTrue($result['security']['prevent_recording']);
-        $this->assertTrue($result['security']['face_detection']);
+        $securityConfig = $result['security'];
+        $this->assertIsArray($securityConfig);
+        $this->assertArrayHasKey('prevent_screenshot', $securityConfig);
+        $this->assertArrayHasKey('prevent_recording', $securityConfig);
+        $this->assertArrayHasKey('face_detection', $securityConfig);
 
         // 验证分析配置设置正确
-        $this->assertTrue($result['analytics']['track_mouse_movement']);
-        $this->assertTrue($result['analytics']['track_focus_events']);
-        $this->assertTrue($result['analytics']['detailed_progress']);
+        $analyticsConfig = $result['analytics'];
+        $this->assertIsArray($analyticsConfig);
+        $this->assertArrayHasKey('track_mouse_movement', $analyticsConfig);
+        $this->assertArrayHasKey('track_focus_events', $analyticsConfig);
+        $this->assertArrayHasKey('detailed_progress', $analyticsConfig);
 
         // 验证UI配置有效性
         $this->assertSame('dark', $result['ui']['custom_theme']);

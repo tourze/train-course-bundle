@@ -13,6 +13,9 @@ use Tourze\TrainCourseBundle\Entity\CoursePlayControl;
 use Tourze\TrainCourseBundle\Repository\CoursePlayControlRepository;
 
 /**
+ * @template TEntity of CoursePlayControl
+ * @extends AbstractRepositoryTestCase<CoursePlayControl>
+ *
  * @internal
  */
 #[CoversClass(CoursePlayControlRepository::class)]
@@ -91,7 +94,6 @@ final class CoursePlayControlRepositoryTest extends AbstractRepositoryTestCase
 
         $results = $this->repository->findEnabledControls();
 
-        self::assertIsArray($results);
         $ids = array_map(fn ($c) => $c->getId(), $results);
         self::assertContains($controlEnabled->getId(), $ids);
         self::assertNotContains($controlDisabled->getId(), $ids);
@@ -113,7 +115,6 @@ final class CoursePlayControlRepositoryTest extends AbstractRepositoryTestCase
 
         $results = $this->repository->findWithFastForwardDisabled();
 
-        self::assertIsArray($results);
         $ids = array_map(fn ($c) => $c->getId(), $results);
         self::assertContains($control1->getId(), $ids);
         self::assertNotContains($control2->getId(), $ids);
@@ -135,7 +136,6 @@ final class CoursePlayControlRepositoryTest extends AbstractRepositoryTestCase
 
         $results = $this->repository->findWithWatermarkEnabled();
 
-        self::assertIsArray($results);
         $ids = array_map(fn ($c) => $c->getId(), $results);
         self::assertContains($control1->getId(), $ids);
         self::assertNotContains($control2->getId(), $ids);
@@ -159,7 +159,6 @@ final class CoursePlayControlRepositoryTest extends AbstractRepositoryTestCase
 
         $results = $this->repository->findStrictModeControls();
 
-        self::assertIsArray($results);
         $ids = array_map(fn ($c) => $c->getId(), $results);
         self::assertContains($control1->getId(), $ids);
         self::assertNotContains($control2->getId(), $ids);
@@ -181,7 +180,6 @@ final class CoursePlayControlRepositoryTest extends AbstractRepositoryTestCase
 
         $results = $this->repository->findByMaxDeviceCount(3);
 
-        self::assertIsArray($results);
         $ids = array_map(fn ($c) => $c->getId(), $results);
         self::assertContains($control1->getId(), $ids);
         self::assertNotContains($control2->getId(), $ids);
@@ -232,7 +230,6 @@ final class CoursePlayControlRepositoryTest extends AbstractRepositoryTestCase
 
         $results = $this->repository->findNeedingAuthUpdate(1800); // 30分钟阈值
 
-        self::assertIsArray($results);
         $ids = array_map(fn ($c) => $c->getId(), $results);
         self::assertContains($control1->getId(), $ids);
         self::assertNotContains($control2->getId(), $ids);

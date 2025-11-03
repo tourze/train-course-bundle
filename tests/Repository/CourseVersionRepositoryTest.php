@@ -15,6 +15,9 @@ use Tourze\TrainCourseBundle\Repository\CourseVersionRepository;
 /**
  * CourseVersionRepository 集成测试
  *
+ * @template TEntity of CourseVersion
+ * @extends AbstractRepositoryTestCase<CourseVersion>
+ *
  * @internal
  */
 #[CoversClass(CourseVersionRepository::class)]
@@ -68,19 +71,42 @@ final class CourseVersionRepositoryTest extends AbstractRepositoryTestCase
     public function testFindByStatusReturnsArray(): void
     {
         $versions = $this->repository->findByStatus('published');
+        self::assertContainsOnlyInstancesOf(CourseVersion::class, $versions);
         self::assertIsArray($versions);
+        // All returned versions should have the specified status
+        foreach ($versions as $version) {
+            self::assertSame('published', $version->getStatus());
+        }
     }
 
     public function testSearchVersionsReturnsArray(): void
     {
         $versions = $this->repository->searchVersions('test', null);
+        self::assertContainsOnlyInstancesOf(CourseVersion::class, $versions);
         self::assertIsArray($versions);
+        // All returned versions should contain the search keyword in version, title, or description
+        foreach ($versions as $version) {
+            $foundInVersion = stripos($version->getVersion(), 'test') !== false;
+            $foundInTitle = $version->getTitle() && stripos($version->getTitle(), 'test') !== false;
+            $foundInDescription = $version->getDescription() && stripos($version->getDescription(), 'test') !== false;
+            self::assertTrue($foundInVersion || $foundInTitle || $foundInDescription,
+                'Search keyword "test" should be found in version, title, or description');
+        }
     }
 
     public function testFindOldVersionsReturnsArray(): void
     {
         $versions = $this->repository->findOldVersions(30);
+        self::assertContainsOnlyInstancesOf(CourseVersion::class, $versions);
         self::assertIsArray($versions);
+        // All returned versions should be older than the specified days
+        $cutoffDate = new \DateTime();
+        $cutoffDate->modify('-30 days');
+        foreach ($versions as $version) {
+            $createTime = $version->getCreateTime();
+            self::assertInstanceOf(\DateTimeInterface::class, $createTime);
+            self::assertLessThanOrEqual($cutoffDate, $createTime);
+        }
     }
 
     public function testFindByCourse(): void
@@ -92,7 +118,7 @@ final class CourseVersionRepositoryTest extends AbstractRepositoryTestCase
         $this->repository->save($entity);
 
         $versions = $this->repository->findByCourse($course);
-        self::assertIsArray($versions);
+        self::assertContainsOnlyInstancesOf(CourseVersion::class, $versions);
         self::assertContainsOnlyInstancesOf(CourseVersion::class, $versions);
 
         if ([] !== $versions) {
@@ -188,7 +214,7 @@ final class CourseVersionRepositoryTest extends AbstractRepositoryTestCase
         $this->repository->save($entity);
 
         $versions = $this->repository->findPublishedByCourse($course);
-        self::assertIsArray($versions);
+        self::assertContainsOnlyInstancesOf(CourseVersion::class, $versions);
         self::assertContainsOnlyInstancesOf(CourseVersion::class, $versions);
 
         if ([] !== $versions) {
@@ -237,7 +263,7 @@ final class CourseVersionRepositoryTest extends AbstractRepositoryTestCase
 
         // Test with keep count of 5 - should return older versions beyond the 5 newest
         $versionsToArchive = $this->repository->findVersionsToArchive($course, 5);
-        self::assertIsArray($versionsToArchive);
+        self::assertContainsOnlyInstancesOf(CourseVersion::class, $versionsToArchive);
         self::assertContainsOnlyInstancesOf(CourseVersion::class, $versionsToArchive);
 
         // Should return 6 versions (12 total - 1 current - 5 to keep = 6)

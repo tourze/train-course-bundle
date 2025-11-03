@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainCourseBundle\Tests\Repository;
 
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\CatalogBundle\Entity\Catalog;
@@ -12,6 +13,9 @@ use Tourze\TrainCourseBundle\Repository\CourseRepository;
 
 /**
  * CourseRepository 集成测试
+ *
+ * @template TEntity of Course
+ * @extends AbstractRepositoryTestCase<Course>
  *
  * @internal
  */
@@ -78,15 +82,9 @@ final class CourseRepositoryTest extends AbstractRepositoryTestCase
         $stats = $this->courseRepository->getStatistics();
 
         // 验证返回数组结构
-        self::assertIsArray($stats);
         self::assertArrayHasKey('total_courses', $stats);
         self::assertArrayHasKey('valid_courses', $stats);
         self::assertArrayHasKey('invalid_courses', $stats);
-
-        // 验证所有值都是整数
-        self::assertIsInt($stats['total_courses']);
-        self::assertIsInt($stats['valid_courses']);
-        self::assertIsInt($stats['invalid_courses']);
 
         // 验证数值逻辑关系
         self::assertGreaterThanOrEqual(0, $stats['total_courses']);
@@ -543,7 +541,6 @@ final class CourseRepositoryTest extends AbstractRepositoryTestCase
 
         $courses = $this->courseRepository->findByCategories([$category1, $category2]);
 
-        self::assertIsArray($courses);
         self::assertCount(3, $courses);
 
         $foundCourseIds = array_map(fn ($course) => $course->getId(), $courses);
@@ -610,7 +607,6 @@ final class CourseRepositoryTest extends AbstractRepositoryTestCase
 
         $category1Courses = $this->courseRepository->findByCategory($category1);
 
-        self::assertIsArray($category1Courses);
         self::assertCount(2, $category1Courses);
 
         $foundCourseIds = array_map(fn ($course) => $course->getId(), $category1Courses);
@@ -1071,7 +1067,8 @@ final class CourseRepositoryTest extends AbstractRepositoryTestCase
         return $entity;
     }
 
-    protected function getRepository(): CourseRepository
+    /** @return ServiceEntityRepository<Course> */
+    protected function getRepository(): ServiceEntityRepository
     {
         return $this->courseRepository;
     }

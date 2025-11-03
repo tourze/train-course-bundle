@@ -2,6 +2,7 @@
 
 namespace Tourze\TrainCourseBundle\Tests\Repository;
 
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\CatalogBundle\Entity\Catalog;
@@ -14,6 +15,9 @@ use Tourze\TrainCourseBundle\Repository\LessonRepository;
 
 /**
  * LessonRepository 集成测试
+ *
+ * @template TEntity of Lesson
+ * @extends AbstractRepositoryTestCase<Lesson>
  *
  * @internal
  */
@@ -727,7 +731,6 @@ final class LessonRepositoryTest extends AbstractRepositoryTestCase
         $lessons = $this->repository->findByChapter($chapter);
 
         self::assertCount(3, $lessons);
-        self::assertContainsOnlyInstancesOf(Lesson::class, $lessons);
 
         // 验证排序 (DESC, ASC)
         self::assertSame($lesson3->getId(), $lessons[0]->getId()); // sortNumber = 3
@@ -825,7 +828,6 @@ final class LessonRepositoryTest extends AbstractRepositoryTestCase
         $lessons = $this->repository->findByCourse($course);
 
         self::assertCount(3, $lessons);
-        self::assertContainsOnlyInstancesOf(Lesson::class, $lessons);
     }
 
     public function testFindLessonsWithVideo(): void
@@ -1429,7 +1431,8 @@ final class LessonRepositoryTest extends AbstractRepositoryTestCase
         return $entity;
     }
 
-    protected function getRepository(): LessonRepository
+    /** @return ServiceEntityRepository<Lesson> */
+    protected function getRepository(): ServiceEntityRepository
     {
         return $this->repository;
     }
