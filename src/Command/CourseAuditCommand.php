@@ -21,7 +21,7 @@ use Tourze\TrainCourseBundle\Service\CourseConfigService;
  * 自动化处理课程审核任务，包括超时检测、自动审核等功能
  */
 #[AsCommand(name: self::NAME, description: '处理课程审核任务')]
-class CourseAuditCommand extends Command
+final class CourseAuditCommand extends Command
 {
     public const NAME = 'train-course:audit';
 

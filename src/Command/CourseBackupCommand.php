@@ -23,7 +23,7 @@ use Tourze\TrainCourseBundle\Service\BackupUtil\BackupReportGenerator;
  * 用于备份课程数据，支持全量备份和增量备份
  */
 #[AsCommand(name: self::NAME, description: '备份课程数据')]
-class CourseBackupCommand extends Command
+final class CourseBackupCommand extends Command
 {
     public const NAME = 'course:backup';
 

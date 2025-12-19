@@ -87,8 +87,10 @@ final class CourseVersionRepositoryTest extends AbstractRepositoryTestCase
         // All returned versions should contain the search keyword in version, title, or description
         foreach ($versions as $version) {
             $foundInVersion = stripos($version->getVersion(), 'test') !== false;
-            $foundInTitle = $version->getTitle() && stripos($version->getTitle(), 'test') !== false;
-            $foundInDescription = $version->getDescription() && stripos($version->getDescription(), 'test') !== false;
+            $title = $version->getTitle();
+            $description = $version->getDescription();
+            $foundInTitle = null !== $title && stripos($title, 'test') !== false;
+            $foundInDescription = null !== $description && stripos($description, 'test') !== false;
             self::assertTrue($foundInVersion || $foundInTitle || $foundInDescription,
                 'Search keyword "test" should be found in version, title, or description');
         }

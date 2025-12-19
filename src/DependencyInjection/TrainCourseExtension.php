@@ -9,7 +9,7 @@ use Tourze\SymfonyDependencyServiceLoader\AutoExtension;
  *
  * 负责加载Bundle配置和服务定义
  */
-class TrainCourseExtension extends AutoExtension
+final class TrainCourseExtension extends AutoExtension
 {
     protected function getConfigDir(): string
     {

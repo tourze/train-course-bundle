@@ -11,7 +11,7 @@ use Tourze\TrainCourseBundle\Entity\Video;
  * @extends ServiceEntityRepository<Video>
  */
 #[AsRepository(entityClass: Video::class)]
-class VideoRepository extends ServiceEntityRepository
+final class VideoRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

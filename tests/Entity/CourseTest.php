@@ -419,15 +419,9 @@ final class CourseTest extends AbstractEntityTestCase
 
     public function testRetrieveApiArray(): void
     {
-        /*
-         * 使用具体的Catalog实体类创建Mock对象
-         * 原因：测试retrieveApiArray方法需要调用关联Catalog实体的getId和getName方法获取分类信息
-         * 必要性：验证API数组输出中包含正确的分类信息，需要Mock Catalog的方法返回预期数据
-         * 替代方案：使用真实Catalog对象需要完整的分类数据初始化，Mock更适合控制返回值
-         */
-        $category = $this->createMock(Catalog::class);
-        $category->method('getId')->willReturn('cat123');
-        $category->method('getName')->willReturn('安全培训');
+        // 使用真实的 Catalog 实体，避免 Mock 无法配置 getId 方法的问题
+        $category = new Catalog();
+        $category->setName('安全培训');
 
         $this->course->setTitle('测试课程');
         $this->course->setDescription('课程描述');

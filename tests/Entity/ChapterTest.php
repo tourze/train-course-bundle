@@ -251,14 +251,9 @@ final class ChapterTest extends AbstractEntityTestCase
 
     public function testRetrieveApiArray(): void
     {
-        /*
-         * 使用具体的Course实体类创建Mock对象
-         * 原因：测试retrieveApiArray方法需要访问关联的Course实体的getId方法
-         * 必要性：验证API数组输出中包含正确的课程信息，需要Mock Course的getId方法
-         * 替代方案：使用真实Course对象需要完整的实体初始化，Mock更适合单元测试
-         */
-        $course = $this->createMock(Course::class);
-        $course->method('getId')->willReturn('course123');
+        // 使用真实的 Course 实体，避免 Mock 无法配置 getId 方法的问题
+        $course = new Course();
+        $course->setTitle('测试课程');
 
         $this->chapter->setTitle('第一章 安全基础');
         $this->chapter->setCourse($course);
@@ -268,7 +263,7 @@ final class ChapterTest extends AbstractEntityTestCase
         $this->assertArrayHasKey('title', $apiArray);
 
         $this->assertSame('第一章 安全基础', $apiArray['title']);
-        $this->assertNull($apiArray['id']); // ID为null因为没有设置
+        $this->assertNull($apiArray['id']); // ID为null因为没有持久化
     }
 
     public function testFluentInterface(): void

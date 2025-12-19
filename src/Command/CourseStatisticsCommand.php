@@ -22,7 +22,7 @@ use Tourze\TrainCourseBundle\Service\Statistics\StatisticsOutputRenderer;
  * 生成课程相关的统计报告，包括课程数量、评价统计、收藏统计等
  */
 #[AsCommand(name: self::NAME, description: '生成课程统计报告')]
-class CourseStatisticsCommand extends Command
+final class CourseStatisticsCommand extends Command
 {
     public const NAME = 'train-course:statistics';
 

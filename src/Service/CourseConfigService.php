@@ -11,7 +11,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
  * 统一管理课程相关的配置参数，避免硬编码
  */
 #[Autoconfigure(public: true)]
-class CourseConfigService
+final class CourseConfigService
 {
     public function __construct(
         private readonly ParameterBagInterface $parameterBag,

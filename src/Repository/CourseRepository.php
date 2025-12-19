@@ -15,7 +15,7 @@ use Tourze\TrainCourseBundle\Entity\Course;
  * @extends ServiceEntityRepository<Course>
  */
 #[AsRepository(entityClass: Course::class)]
-class CourseRepository extends ServiceEntityRepository
+final class CourseRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

@@ -20,15 +20,15 @@ use Tourze\TrainCourseBundle\Service\CourseContent\CourseStructureBuilder;
  *
  * 管理课程内容的组织、检索和处理，包括章节、课时、大纲等
  */
-class CourseContentService
+readonly class CourseContentService
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly CacheItemPoolInterface $cache,
-        private readonly CourseStructureBuilder $structureBuilder,
-        private readonly CourseContentFactory $contentFactory,
-        private readonly CourseContentImporter $contentImporter,
-        private readonly ContentOrderManager $orderManager,
+        private EntityManagerInterface $entityManager,
+        private CacheItemPoolInterface $cache,
+        private CourseStructureBuilder $structureBuilder,
+        private CourseContentFactory $contentFactory,
+        private CourseContentImporter $contentImporter,
+        private ContentOrderManager $orderManager,
     ) {
     }
 

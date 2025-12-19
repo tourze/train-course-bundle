@@ -4,40 +4,33 @@ declare(strict_types=1);
 
 namespace Tourze\TrainCourseBundle\Tests\Service\CourseContent;
 
-use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
+use Tourze\TrainCourseBundle\Entity\Chapter;
 use Tourze\TrainCourseBundle\Entity\Course;
-use Tourze\TrainCourseBundle\Repository\ChapterRepository;
-use Tourze\TrainCourseBundle\Repository\CourseOutlineRepository;
-use Tourze\TrainCourseBundle\Service\CourseContent\CourseStatisticsCalculator;
+use Tourze\TrainCourseBundle\Entity\CourseOutline;
+use Tourze\TrainCourseBundle\Entity\Lesson;
 use Tourze\TrainCourseBundle\Service\CourseContent\CourseStructureBuilder;
+use Tourze\TrainCourseBundle\Tests\Factory\CourseFactory;
 
 /**
+ * CourseStructureBuilder 集成测试
+ *
  * @internal
  */
 #[CoversClass(CourseStructureBuilder::class)]
-final class CourseStructureBuilderTest extends TestCase
+#[RunTestsInSeparateProcesses]
+final class CourseStructureBuilderTest extends AbstractIntegrationTestCase
 {
     private CourseStructureBuilder $builder;
+    private EntityManagerInterface $em;
 
-    private ChapterRepository $chapterRepository;
-
-    private CourseOutlineRepository $outlineRepository;
-
-    private CourseStatisticsCalculator $statisticsCalculator;
-
-    protected function setUp(): void
+    protected function onSetUp(): void
     {
-        $this->chapterRepository = $this->createMock(ChapterRepository::class);
-        $this->outlineRepository = $this->createMock(CourseOutlineRepository::class);
-        $this->statisticsCalculator = $this->createMock(CourseStatisticsCalculator::class);
-
-        $this->builder = new CourseStructureBuilder(
-            $this->chapterRepository,
-            $this->outlineRepository,
-            $this->statisticsCalculator
-        );
+        $this->builder = self::getService(CourseStructureBuilder::class);
+        $this->em = self::getService(EntityManagerInterface::class);
     }
 
     public function testCanBeInstantiated(): void
@@ -47,19 +40,7 @@ final class CourseStructureBuilderTest extends TestCase
 
     public function testBuildCourseContentStructureReturnsArray(): void
     {
-        $course = $this->createBasicCourse();
-
-        $this->chapterRepository->method('findByCourseWithLessons')
-            ->willReturn([])
-        ;
-
-        $this->outlineRepository->method('findPublishedByCourse')
-            ->willReturn([])
-        ;
-
-        $this->statisticsCalculator->method('getCourseContentStatistics')
-            ->willReturn([])
-        ;
+        $course = $this->createPersistedCourse();
 
         $result = $this->builder->buildCourseContentStructure($course);
 
@@ -72,19 +53,7 @@ final class CourseStructureBuilderTest extends TestCase
 
     public function testBuildCourseContentStructureIncludesCourseInfo(): void
     {
-        $course = $this->createBasicCourse();
-
-        $this->chapterRepository->method('findByCourseWithLessons')
-            ->willReturn([])
-        ;
-
-        $this->outlineRepository->method('findPublishedByCourse')
-            ->willReturn([])
-        ;
-
-        $this->statisticsCalculator->method('getCourseContentStatistics')
-            ->willReturn([])
-        ;
+        $course = $this->createPersistedCourse('测试课程', '课程描述');
 
         $result = $this->builder->buildCourseContentStructure($course);
 
@@ -92,57 +61,54 @@ final class CourseStructureBuilderTest extends TestCase
         $this->assertArrayHasKey('id', $result['course']);
         $this->assertArrayHasKey('title', $result['course']);
         $this->assertArrayHasKey('description', $result['course']);
+        $this->assertSame('测试课程', $result['course']['title']);
     }
 
     public function testBuildCourseContentStructureIncludesChapters(): void
     {
-        $course = $this->createBasicCourse();
-        $chapters = [$this->createMockChapter()];
-
-        $this->chapterRepository->method('findByCourseWithLessons')
-            ->willReturn($chapters)
-        ;
-
-        $this->outlineRepository->method('findPublishedByCourse')
-            ->willReturn([])
-        ;
-
-        $this->statisticsCalculator->method('getCourseContentStatistics')
-            ->willReturn([])
-        ;
+        $course = $this->createPersistedCourseWithChapters(2);
 
         $result = $this->builder->buildCourseContentStructure($course);
 
         $this->assertIsArray($result['chapters']);
-        $this->assertCount(1, $result['chapters']);
+        $this->assertCount(2, $result['chapters']);
+
+        // 验证章节数据结构
+        $firstChapter = $result['chapters'][0];
+        $this->assertArrayHasKey('id', $firstChapter);
+        $this->assertArrayHasKey('title', $firstChapter);
+        $this->assertArrayHasKey('sort_number', $firstChapter);
+        $this->assertArrayHasKey('lessons', $firstChapter);
     }
 
     public function testBuildCourseContentStructureIncludesOutlines(): void
     {
-        $course = $this->createBasicCourse();
-        $outlines = [$this->createMockOutline()];
+        $course = $this->createPersistedCourse();
 
-        $this->chapterRepository->method('findByCourseWithLessons')
-            ->willReturn([])
-        ;
-
-        $this->outlineRepository->method('findPublishedByCourse')
-            ->willReturn($outlines)
-        ;
-
-        $this->statisticsCalculator->method('getCourseContentStatistics')
-            ->willReturn([])
-        ;
+        // 创建大纲
+        $outline = new CourseOutline();
+        $outline->setCourse($course);
+        $outline->setTitle('课程大纲');
+        $outline->setSortNumber(1);
+        $outline->setStatus('published');
+        $this->em->persist($outline);
+        $this->em->flush();
 
         $result = $this->builder->buildCourseContentStructure($course);
 
         $this->assertIsArray($result['outlines']);
         $this->assertCount(1, $result['outlines']);
+
+        // 验证大纲数据结构
+        $firstOutline = $result['outlines'][0];
+        $this->assertArrayHasKey('id', $firstOutline);
+        $this->assertArrayHasKey('title', $firstOutline);
+        $this->assertSame('课程大纲', $firstOutline['title']);
     }
 
     public function testBuildStatisticsReturnsArray(): void
     {
-        $course = $this->createCourseWithContent();
+        $course = $this->createPersistedCourseWithContent();
 
         $result = $this->builder->buildStatistics($course);
 
@@ -157,7 +123,7 @@ final class CourseStructureBuilderTest extends TestCase
 
     public function testBuildStatisticsCalculatesTotals(): void
     {
-        $course = $this->createCourseWithContent();
+        $course = $this->createPersistedCourseWithContent();
 
         $result = $this->builder->buildStatistics($course);
 
@@ -165,153 +131,81 @@ final class CourseStructureBuilderTest extends TestCase
         $this->assertIsInt($result['total_lessons']);
         $this->assertIsInt($result['total_outlines']);
         $this->assertIsInt($result['total_duration_seconds']);
+        $this->assertGreaterThanOrEqual(0, $result['total_chapters']);
+        $this->assertGreaterThanOrEqual(0, $result['total_lessons']);
     }
 
     /**
-     * 创建基本课程
+     * 创建并持久化基础课程
      */
-    private function createBasicCourse(): Course
+    private function createPersistedCourse(string $title = '测试课程', string $description = '课程描述'): Course
     {
-        $course = new Course();
-        $course->setTitle('测试课程');
-        $course->setDescription('课程描述');
+        $course = CourseFactory::create(['title' => $title, 'description' => $description]);
+        $this->em->persist($course);
+        $this->em->flush();
 
         return $course;
     }
 
     /**
-     * 创建带有内容的课程
+     * 创建带有章节的课程
      */
-    private function createCourseWithContent(): Course
+    private function createPersistedCourseWithChapters(int $chapterCount = 2): Course
     {
-        $course = new Course();
-        $course->setTitle('完整课程');
+        $course = $this->createPersistedCourse();
+
+        for ($i = 1; $i <= $chapterCount; ++$i) {
+            $chapter = new Chapter();
+            $chapter->setCourse($course);
+            $chapter->setTitle("第{$i}章");
+            $chapter->setSortNumber($i);
+            $this->em->persist($chapter);
+        }
+
+        $this->em->flush();
+        $this->em->refresh($course);
 
         return $course;
     }
 
     /**
-     * 创建Mock章节
+     * 创建包含完整内容的课程
      */
-    private function createMockChapter(): object
+    private function createPersistedCourseWithContent(): Course
     {
-        return new class {
-            public function getId(): int
-            {
-                return 1;
+        $course = $this->createPersistedCourse();
+
+        // 创建章节和课时
+        for ($i = 1; $i <= 2; ++$i) {
+            $chapter = new Chapter();
+            $chapter->setCourse($course);
+            $chapter->setTitle("第{$i}章");
+            $chapter->setSortNumber($i);
+            $this->em->persist($chapter);
+
+            // 为每章创建课时
+            for ($j = 1; $j <= 3; ++$j) {
+                $lesson = new Lesson();
+                $lesson->setChapter($chapter);
+                $lesson->setTitle("第{$i}.{$j}节");
+                $lesson->setSortNumber($j);
+                $lesson->setDurationSecond(1800); // 30分钟
+                $lesson->setVideoUrl('https://example.com/video.mp4');
+                $this->em->persist($lesson);
             }
+        }
 
-            public function getTitle(): string
-            {
-                return '章节1';
-            }
+        // 创建大纲
+        $outline = new CourseOutline();
+        $outline->setCourse($course);
+        $outline->setTitle('课程大纲');
+        $outline->setSortNumber(1);
+        $outline->setStatus('published');
+        $this->em->persist($outline);
 
-            public function getSortNumber(): int
-            {
-                return 1;
-            }
+        $this->em->flush();
+        $this->em->refresh($course);
 
-            /**
-             * @return ArrayCollection<int, object>
-             */
-            public function getLessons(): ArrayCollection
-            {
-                $lesson = new class {
-                    public function getId(): int
-                    {
-                        return 1;
-                    }
-
-                    public function getTitle(): string
-                    {
-                        return '课时1';
-                    }
-
-                    /**
-                     * @phpstan-ignore return.unusedType
-                     */
-                    public function getVideoUrl(): ?string
-                    {
-                        return 'https://example.com/video.mp4';
-                    }
-
-                    public function getDurationSecond(): int
-                    {
-                        return 3600;
-                    }
-
-                    public function getSortNumber(): int
-                    {
-                        return 1;
-                    }
-                };
-
-                /** @var ArrayCollection<int, object> */
-                return new ArrayCollection([$lesson]);
-            }
-        };
-    }
-
-    /**
-     * 创建Mock大纲
-     */
-    private function createMockOutline(): object
-    {
-        return new class {
-            public function getId(): int
-            {
-                return 1;
-            }
-
-            public function getTitle(): string
-            {
-                return '大纲1';
-            }
-
-            /**
-             * @phpstan-ignore return.unusedType
-             */
-            public function getLearningObjectives(): ?string
-            {
-                return '学习目标';
-            }
-
-            /**
-             * @phpstan-ignore return.unusedType
-             */
-            public function getContentPoints(): ?string
-            {
-                return '内容要点';
-            }
-
-            /**
-             * @phpstan-ignore return.unusedType
-             */
-            public function getKeyDifficulties(): ?string
-            {
-                return '重难点';
-            }
-
-            /**
-             * @phpstan-ignore return.unusedType
-             */
-            public function getAssessmentCriteria(): ?string
-            {
-                return '考核标准';
-            }
-
-            /**
-             * @phpstan-ignore return.unusedType
-             */
-            public function getEstimatedMinutes(): ?int
-            {
-                return 60;
-            }
-
-            public function getSortNumber(): int
-            {
-                return 1;
-            }
-        };
+        return $course;
     }
 }

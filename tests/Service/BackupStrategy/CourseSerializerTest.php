@@ -333,17 +333,11 @@ final class CourseSerializerTest extends TestCase
                 return 1;
             }
 
-            /**
-             * @phpstan-ignore return.unusedType
-             */
             public function getTitle(): ?string
             {
                 return null;
             }
 
-            /**
-             * @phpstan-ignore return.unusedType
-             */
             public function getDescription(): ?string
             {
                 return null;

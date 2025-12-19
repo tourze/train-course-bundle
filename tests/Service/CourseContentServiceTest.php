@@ -113,9 +113,10 @@ final class CourseContentServiceTest extends AbstractIntegrationTestCase
         // 验证第一章包含课时
         $firstChapter = $structure['chapters'][0] ?? [];
         $this->assertIsArray($firstChapter);
-        $this->assertTrue(isset($firstChapter['lessons']));
-        /** @phpstan-ignore argument.type */
-        $this->assertCount(3, $firstChapter['lessons']);
+        $this->assertArrayHasKey('lessons', $firstChapter);
+        $lessons = $firstChapter['lessons'];
+        $this->assertIsArray($lessons);
+        $this->assertCount(3, $lessons);
     }
 
     public function testGetCourseContentStatistics(): void
@@ -149,23 +150,24 @@ final class CourseContentServiceTest extends AbstractIntegrationTestCase
         $chapter2 = $this->service->createChapter($course, ['title' => '第二章', 'sortNumber' => 2]);
         $chapter3 = $this->service->createChapter($course, ['title' => '第三章', 'sortNumber' => 3]);
 
-        // 重新排序章节
+        // 重新排序章节（新顺序：chapter2, chapter3, chapter1）
         $id1 = $chapter1->getId();
         $id2 = $chapter2->getId();
         $id3 = $chapter3->getId();
 
+        // 方法期望 array<int, string> 格式，索引位置表示新顺序
+        /** @var array<int, string> $newOrder */
         $newOrder = [];
         if (is_string($id2)) {
-            $newOrder[$id2] = '1';
+            $newOrder[] = $id2;
         }
         if (is_string($id3)) {
-            $newOrder[$id3] = '2';
+            $newOrder[] = $id3;
         }
         if (is_string($id1)) {
-            $newOrder[$id1] = '3';
+            $newOrder[] = $id1;
         }
 
-        /** @phpstan-ignore argument.type */
         $this->service->reorderChapters($course, $newOrder);
 
         // 验证排序已更新

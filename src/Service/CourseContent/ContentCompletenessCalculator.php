@@ -5,17 +5,19 @@ declare(strict_types=1);
 namespace Tourze\TrainCourseBundle\Service\CourseContent;
 
 use Tourze\TrainCourseBundle\Entity\Course;
-use Tourze\TrainCourseBundle\Repository\ChapterRepository;
-use Tourze\TrainCourseBundle\Repository\CourseOutlineRepository;
 
 /**
  * 内容完整度计算器
  */
 class ContentCompletenessCalculator
 {
+    /**
+     * @param object $chapterRepository 需要实现 findByCourse 方法
+     * @param object $outlineRepository 需要实现 findByCourse 和 findPublishedByCourse 方法
+     */
     public function __construct(
-        private readonly ChapterRepository $chapterRepository,
-        private readonly CourseOutlineRepository $outlineRepository,
+        private readonly object $chapterRepository,
+        private readonly object $outlineRepository,
     ) {
     }
 

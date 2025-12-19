@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainCourseBundle;
 
-use CmsBundle\CmsBundle;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Tourze\AliyunVodBundle\AliyunVodBundle;
@@ -29,7 +28,6 @@ class TrainCourseBundle extends Bundle implements BundleDependencyInterface
             DoctrineIndexedBundle::class => ['all' => true],
             DoctrineTrackBundle::class => ['all' => true],
             CatalogBundle::class => ['all' => true],
-            CmsBundle::class => ['all' => true],
             RoutingAutoLoaderBundle::class => ['all' => true],
             EasyAdminMenuBundle::class => ['all' => true],
         ];

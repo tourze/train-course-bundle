@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\PHPUnitSymfonyWebTest\AbstractEasyAdminControllerTestCase;
 use Tourze\TrainCourseBundle\Controller\Admin\LessonCrudController;
+use Tourze\TrainCourseBundle\Tests\AbstractEasyAdminTestCase;
 
 /**
  * 课时管理控制器测试
@@ -15,7 +16,7 @@ use Tourze\TrainCourseBundle\Controller\Admin\LessonCrudController;
  */
 #[CoversClass(LessonCrudController::class)]
 #[RunTestsInSeparateProcesses]
-final class LessonCrudControllerTest extends AbstractEasyAdminControllerTestCase
+final class LessonCrudControllerTest extends AbstractEasyAdminTestCase
 {
     protected function getControllerService(): LessonCrudController
     {

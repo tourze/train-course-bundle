@@ -7,17 +7,19 @@ namespace Tourze\TrainCourseBundle\Service\CourseContent;
 use Tourze\TrainCourseBundle\Entity\Chapter;
 use Tourze\TrainCourseBundle\Entity\Course;
 use Tourze\TrainCourseBundle\Entity\Lesson;
-use Tourze\TrainCourseBundle\Repository\ChapterRepository;
-use Tourze\TrainCourseBundle\Repository\LessonRepository;
 
 /**
  * 内容排序管理器
  */
 class ContentOrderManager
 {
+    /**
+     * @param object $chapterRepository 需要实现相关章节查询方法
+     * @param object $lessonRepository 需要实现相关课时查询方法
+     */
     public function __construct(
-        private readonly ChapterRepository $chapterRepository,
-        private readonly LessonRepository $lessonRepository,
+        private readonly object $chapterRepository,
+        private readonly object $lessonRepository,
     ) {
     }
 

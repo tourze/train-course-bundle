@@ -291,8 +291,16 @@ final class CollectRepositoryTest extends AbstractRepositoryTestCase
         $this->createTestCollect('test_get_user_groups_user', $course3, 'active', 'learning');
 
         $groups = $this->repository->getUserCollectGroups('test_get_user_groups_user');
-        self::assertContainsOnlyInstancesOf(Collect::class, $groups);
+        // 方法返回统计数组 array{group: string|null, count: int}[]，而非 Collect 实体
+        self::assertIsArray($groups);
         self::assertGreaterThanOrEqual(2, count($groups));
+
+        // 验证结构：每个元素应该有 group 和 count 键
+        foreach ($groups as $group) {
+            self::assertIsArray($group);
+            self::assertArrayHasKey('group', $group);
+            self::assertArrayHasKey('count', $group);
+        }
 
         $groupNames = array_column($groups, 'group');
         self::assertContains('favorites', $groupNames);
@@ -319,12 +327,17 @@ final class CollectRepositoryTest extends AbstractRepositoryTestCase
         $course = $this->createTestCourse();
         $this->createTestCollect('user123', $course, 'active');
 
+        // 方法返回统计数组，不是 Collect 实体
         $userStats = $this->repository->getCollectStatistics('user123');
-        self::assertContainsOnlyInstancesOf(Collect::class, $userStats);
+        self::assertArrayHasKey('total_collects', $userStats);
+        self::assertArrayHasKey('top_collects', $userStats);
+        self::assertArrayHasKey('normal_collects', $userStats);
         self::assertGreaterThanOrEqual(1, $userStats['total_collects']);
 
         $courseStats = $this->repository->getCollectStatistics(null, $course);
-        self::assertContainsOnlyInstancesOf(Collect::class, $courseStats);
+        self::assertArrayHasKey('total_collects', $courseStats);
+        self::assertArrayHasKey('top_collects', $courseStats);
+        self::assertArrayHasKey('normal_collects', $courseStats);
         self::assertGreaterThanOrEqual(1, $courseStats['total_collects']);
     }
 

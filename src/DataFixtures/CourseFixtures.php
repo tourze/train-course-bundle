@@ -16,7 +16,7 @@ use Tourze\TrainCourseBundle\Entity\Course;
  */
 #[When(env: 'test')]
 #[When(env: 'dev')]
-class CourseFixtures extends Fixture implements FixtureGroupInterface
+final class CourseFixtures extends Fixture implements FixtureGroupInterface
 {
     // 分类类型引用常量
     public const CATALOG_TYPE_COURSE = 'catalog-type-course';

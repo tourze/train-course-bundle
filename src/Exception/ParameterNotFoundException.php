@@ -7,6 +7,6 @@ namespace Tourze\TrainCourseBundle\Exception;
 /**
  * 参数未找到异常
  */
-class ParameterNotFoundException extends \RuntimeException
+final class ParameterNotFoundException extends \RuntimeException
 {
 }

@@ -214,9 +214,6 @@ final class AuditCleanupTaskTest extends TestCase
                 };
             }
 
-            /**
-             * @phpstan-ignore return.unusedType
-             */
             public function getAuditTime(): ?\DateTime
             {
                 return null;

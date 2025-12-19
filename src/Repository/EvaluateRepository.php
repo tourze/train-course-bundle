@@ -14,7 +14,7 @@ use Tourze\TrainCourseBundle\Entity\Evaluate;
  * @extends ServiceEntityRepository<Evaluate>
  */
 #[AsRepository(entityClass: Evaluate::class)]
-class EvaluateRepository extends ServiceEntityRepository
+final class EvaluateRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Tourze\TrainCourseBundle\Tests\Service;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 use Tourze\TrainCourseBundle\Service\CoursePlayControlService;
 
 /**
@@ -14,19 +15,18 @@ use Tourze\TrainCourseBundle\Service\CoursePlayControlService;
  * @internal
  */
 #[CoversClass(CoursePlayControlService::class)]
-final class CoursePlayControlServiceTest extends TestCase
+#[RunTestsInSeparateProcesses]
+final class CoursePlayControlServiceTest extends AbstractIntegrationTestCase
 {
-    protected function setUp(): void
+    protected function onSetUp(): void
     {
-        parent::setUp();
-
-        // 单元测试设置
+        // 集成测试设置
     }
 
     public function testServiceExists(): void
     {
-        $reflection = new \ReflectionClass(CoursePlayControlService::class);
-        $this->assertTrue($reflection->isInstantiable());
+        $service = self::getService(CoursePlayControlService::class);
+        $this->assertInstanceOf(CoursePlayControlService::class, $service);
     }
 
     public function testGetPlayControlConfigMethodExists(): void

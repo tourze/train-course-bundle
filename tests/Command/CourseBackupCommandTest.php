@@ -9,7 +9,6 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Console\Tester\CommandTester;
 use Tourze\PHPUnitSymfonyKernelTest\AbstractCommandTestCase;
 use Tourze\TrainCourseBundle\Command\CourseBackupCommand;
-use Tourze\TrainCourseBundle\Repository\CourseRepository;
 
 /**
  * CourseBackupCommand 集成测试
@@ -20,8 +19,10 @@ use Tourze\TrainCourseBundle\Repository\CourseRepository;
 #[RunTestsInSeparateProcesses]
 final class CourseBackupCommandTest extends AbstractCommandTestCase
 {
-    protected function onSetUp(): void        // 集成测试的初始化逻辑在这里实现
+    protected function onSetUp(): void
     {
+        // 集成测试的初始化逻辑在这里实现
+        // 可以加载测试数据 fixtures 或创建临时数据
     }
 
     protected function getCommandTester(): CommandTester
@@ -31,33 +32,8 @@ final class CourseBackupCommandTest extends AbstractCommandTestCase
         return new CommandTester($command);
     }
 
-    public function testCommandExecute(): void
-    {
-        // 创建必要的 mock 对象
-        $courseRepository = $this->createMock(CourseRepository::class);
-
-        // 设置 mock 对象的预期行为
-        $courseRepository->method('findAll')->willReturn([]);
-
-        // 注册 mock 服务到容器
-        self::getContainer()->set(CourseRepository::class, $courseRepository);
-
-        $commandTester = $this->getCommandTester();
-        $commandTester->execute(['--type' => 'full']);
-
-        // 验证命令执行成功
-        $this->assertSame(0, $commandTester->getStatusCode());
-    }
-
     public function testOptionType(): void
     {
-        // 创建必要的 mock 对象
-        $courseRepository = $this->createMock(CourseRepository::class);
-        $courseRepository->method('findAll')->willReturn([]);
-
-        // 注册 mock 服务到容器
-        self::getContainer()->set(CourseRepository::class, $courseRepository);
-
         $commandTester = $this->getCommandTester();
         $commandTester->execute(['--type' => 'full']);
 
@@ -68,13 +44,6 @@ final class CourseBackupCommandTest extends AbstractCommandTestCase
 
     public function testOptionOutput(): void
     {
-        // 创建必要的 mock 对象
-        $courseRepository = $this->createMock(CourseRepository::class);
-        $courseRepository->method('findAll')->willReturn([]);
-
-        // 注册 mock 服务到容器
-        self::getContainer()->set(CourseRepository::class, $courseRepository);
-
         $commandTester = $this->getCommandTester();
         $commandTester->execute(['--output' => '/tmp/test_backup']);
 
@@ -85,13 +54,6 @@ final class CourseBackupCommandTest extends AbstractCommandTestCase
 
     public function testOptionSince(): void
     {
-        // 创建必要的 mock 对象
-        $courseRepository = $this->createMock(CourseRepository::class);
-        $courseRepository->method('findUpdatedSince')->willReturn([]);
-
-        // 注册 mock 服务到容器
-        self::getContainer()->set(CourseRepository::class, $courseRepository);
-
         $commandTester = $this->getCommandTester();
         $commandTester->execute([
             '--type' => 'incremental',
@@ -105,13 +67,6 @@ final class CourseBackupCommandTest extends AbstractCommandTestCase
 
     public function testOptionCompress(): void
     {
-        // 创建必要的 mock 对象
-        $courseRepository = $this->createMock(CourseRepository::class);
-        $courseRepository->method('findAll')->willReturn([]);
-
-        // 注册 mock 服务到容器
-        self::getContainer()->set(CourseRepository::class, $courseRepository);
-
         $commandTester = $this->getCommandTester();
         $commandTester->execute(['--compress' => true]);
 
@@ -123,13 +78,6 @@ final class CourseBackupCommandTest extends AbstractCommandTestCase
 
     public function testOptionIncludeMedia(): void
     {
-        // 创建必要的 mock 对象
-        $courseRepository = $this->createMock(CourseRepository::class);
-        $courseRepository->method('findAll')->willReturn([]);
-
-        // 注册 mock 服务到容器
-        self::getContainer()->set(CourseRepository::class, $courseRepository);
-
         $commandTester = $this->getCommandTester();
         $commandTester->execute(['--include-media' => true]);
 
