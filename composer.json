@@ -29,7 +29,7 @@
     "symfony/security-core": "^7.3",
     "symfony/serializer": "^7.3",
     "symfony/yaml": "^7.3",
-    "tourze/aliyun-vod-bundle": "0.0.*",
+    "tourze/aliyun-vod-bundle": "0.1.*",
     "tourze/arrayable": "1.*",
     "tourze/bundle-dependency": "1.*",
     "tourze/catalog-bundle": "2.0.*",
